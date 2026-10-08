@@ -46,7 +46,54 @@
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col relative">
+
+  <!-- TELA DE LOGIN OBRIGATÓRIA (BLOQUEIO INICIAL) -->
+  <div id="authGateOverlay" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+      
+      <div class="text-center">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white mx-auto shadow-md shadow-brand-500/20 mb-3">
+          <i class="ph-bold ph-wallet text-2xl"></i>
+        </div>
+        <h2 class="text-xl font-bold text-slate-900">Bem-vindo ao FinFlow</h2>
+        <p class="text-xs text-slate-500 mt-1">Faça login para sincronizar seus dados em todos os aparelhos.</p>
+      </div>
+
+      <!-- Abas Entrar / Criar Conta -->
+      <div class="flex border border-slate-200 rounded-xl p-1 bg-slate-100 text-xs font-semibold">
+        <button type="button" id="gateTabLogin" onclick="setGateAuthMode('login')" class="flex-1 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition">Entrar</button>
+        <button type="button" id="gateTabRegister" onclick="setGateAuthMode('register')" class="flex-1 py-1.5 rounded-lg text-slate-600 transition">Criar Conta</button>
+      </div>
+
+      <!-- Formulário de Autenticação -->
+      <form id="formGateAuth" onsubmit="handleGateAuthSubmit(event)" class="flex flex-col gap-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">E-mail</label>
+          <input type="email" id="gateAuthEmail" required placeholder="seu@email.com" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Senha</label>
+          <input type="password" id="gateAuthPassword" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
+        </div>
+
+        <button type="submit" id="btnGateAuthSubmit" class="w-full mt-2 py-2.5 text-xs font-bold rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition">Entrar no FinFlow</button>
+      </form>
+
+      <!-- Rodapé do Bloqueio -->
+      <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+        <button type="button" onclick="openCloudModal()" class="text-sky-600 hover:underline flex items-center gap-1 font-semibold">
+          <i class="ph-bold ph-gear"></i>
+          <span>Configurar Chaves Supabase</span>
+        </button>
+        <button type="button" onclick="skipAuthToLocal()" class="text-slate-400 hover:text-slate-700 hover:underline">
+          Usar Offline
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- Header Principal -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
@@ -67,13 +114,13 @@
       <!-- Ações do Topo -->
       <div class="flex items-center flex-wrap gap-2.5">
         <!-- Botão Nuvem / Conexão -->
-        <button id="btnOpenCloudModal" onclick="openCloudModal()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
+        <button onclick="openCloudModal()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
           <i class="ph-bold ph-cloud text-base text-sky-600"></i>
           <span id="labelCloudStatus">Conectar Nuvem</span>
         </button>
 
         <!-- Botão Auth (Login / Perfil) -->
-        <button id="btnOpenAuthModal" onclick="handleAuthClick()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
+        <button onclick="handleAuthClick()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
           <i id="authIcon" class="ph-bold ph-user text-base text-slate-600"></i>
           <span id="labelAuthStatus">Entrar / Cadastrar</span>
         </button>
@@ -102,7 +149,7 @@
   <!-- Barra de Notificação de Status de Sincronização -->
   <div id="syncBar" class="bg-amber-50 border-b border-amber-200 text-amber-800 text-xs py-1.5 px-4 text-center flex items-center justify-center gap-2">
     <i class="ph-fill ph-info"></i>
-    <span>Armazenamento local ativo. Conecte o Supabase no botão acima para sincronizar automaticamente no celular e PC.</span>
+    <span>Armazenamento local ativo. Conecte o Supabase para sincronizar automaticamente no celular e PC.</span>
   </div>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col gap-6">
@@ -231,7 +278,6 @@
 
       <!-- Histórico de Transações -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-        <!-- Barra de Filtros e Busca da Tabela -->
         <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-2">
             <h4 class="text-base font-bold text-slate-900">Histórico de Transações</h4>
@@ -239,27 +285,23 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-            <!-- Busca -->
             <div class="relative flex-1 sm:w-56">
               <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
-              <input type="text" id="searchFilter" oninput="renderApp()" placeholder="Buscar lançamentos..." class="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+              <input type="text" id="searchFilter" oninput="renderApp()" placeholder="Buscar lançamentos..." class="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
             </div>
 
-            <!-- Filtro de Tipo -->
             <select id="typeFilter" onchange="renderApp()" class="text-xs rounded-lg border border-slate-200 py-1.5 px-3 bg-white focus:outline-none focus:border-brand-500">
               <option value="all">Todos os Tipos</option>
               <option value="income">Apenas Receitas</option>
               <option value="expense">Apenas Despesas</option>
             </select>
 
-            <!-- Filtro de Categoria -->
             <select id="categoryFilter" onchange="renderApp()" class="text-xs rounded-lg border border-slate-200 py-1.5 px-3 bg-white focus:outline-none focus:border-brand-500">
               <option value="all">Todas as Categorias</option>
             </select>
           </div>
         </div>
 
-        <!-- Tabela Desktop -->
         <div class="hidden sm:block overflow-x-auto custom-scrollbar">
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
@@ -272,18 +314,12 @@
                 <th class="py-3 px-4 text-center">Ações</th>
               </tr>
             </thead>
-            <tbody id="transactionTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
-              <!-- Renderizado via JavaScript -->
-            </tbody>
+            <tbody id="transactionTableBody" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody>
           </table>
         </div>
 
-        <!-- Lista Mobile -->
-        <div id="transactionMobileList" class="sm:hidden divide-y divide-slate-100 p-2">
-          <!-- Renderizado via JavaScript -->
-        </div>
+        <div id="transactionMobileList" class="sm:hidden divide-y divide-slate-100 p-2"></div>
 
-        <!-- Estado Vazio -->
         <div id="emptyStateTransactions" class="p-10 text-center flex flex-col items-center justify-center text-slate-400 hidden">
           <i class="ph-bold ph-receipt text-4xl mb-2 text-slate-300"></i>
           <p class="text-sm font-semibold text-slate-600">Nenhuma movimentação encontrada</p>
@@ -298,7 +334,7 @@
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div>
           <h3 class="text-base font-bold text-slate-900">Receitas e Despesas Programadas</h3>
-          <p class="text-xs text-slate-500 mt-1">Gerencie compromissos fixos e semanais com cálculo exato de dias no calendário.</p>
+          <p class="text-xs text-slate-500 mt-1">Gerencie compromissos fixos e semanais com cálculo exato no calendário.</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="fulfillAllPendingCurrentMonth()" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition flex items-center gap-1.5">
@@ -312,17 +348,12 @@
         </div>
       </div>
 
-      <!-- Lista de Recorrências -->
-      <div id="recurringListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Renderizado dinamicamente via JS -->
-      </div>
+      <div id="recurringListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
-      <!-- Estado Vazio Recorrências -->
       <div id="emptyStateRecurring" class="bg-white p-12 rounded-2xl border border-slate-200 shadow-sm text-center flex flex-col items-center justify-center text-slate-400 hidden">
         <i class="ph-bold ph-calendar-plus text-4xl mb-2 text-slate-300"></i>
         <h4 class="text-sm font-semibold text-slate-700">Nenhum lançamento recorrente programado</h4>
-        <p class="text-xs text-slate-400 max-w-sm mt-1">Cadastre seus custos fixos como aluguel, internet, ou aportes semanais para efetivar com apenas 1 clique.</p>
-        <button onclick="openRecurringModal()" class="mt-4 px-4 py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700">Cadastrar Primeiro Agendamento</button>
+        <p class="text-xs text-slate-400 max-w-sm mt-1">Cadastre seus custos fixos ou semanais para efetivar com apenas 1 clique.</p>
       </div>
     </div>
 
@@ -330,10 +361,10 @@
 
   <!-- MODAL: NOVA / EDITAR TRANSAÇÃO -->
   <div id="modalTransaction" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4 animate-in fade-in zoom-in duration-150">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <h3 id="modalTransactionTitle" class="text-base font-bold text-slate-900">Nova Movimentação</h3>
-        <button onclick="closeModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+        <button onclick="closeModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
           <i class="ph-bold ph-x text-lg"></i>
         </button>
       </div>
@@ -341,7 +372,6 @@
       <form id="formTransaction" onsubmit="saveTransaction(event)" class="flex flex-col gap-3.5">
         <input type="hidden" id="transId">
 
-        <!-- Tipo: Receita / Despesa -->
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Tipo de Movimentação</label>
           <div class="grid grid-cols-2 gap-2">
@@ -358,33 +388,27 @@
           </div>
         </div>
 
-        <!-- Descrição -->
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Descrição</label>
-          <input type="text" id="transDesc" required placeholder="Ex: Supermercado semanal, Salário..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
+          <input type="text" id="transDesc" required placeholder="Ex: Salário, Combustível..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
         </div>
 
-        <!-- Valor e Data -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Valor (R$)</label>
-            <input type="number" step="0.01" min="0.01" id="transAmount" required placeholder="0,00" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
+            <input type="number" step="0.01" min="0.01" id="transAmount" required placeholder="0,00" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Data</label>
-            <input type="date" id="transDate" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
+            <input type="date" id="transDate" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
           </div>
         </div>
 
-        <!-- Categoria -->
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Categoria</label>
-          <select id="transCategory" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-brand-500">
-            <!-- Preenchido via script -->
-          </select>
+          <select id="transCategory" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none"></select>
         </div>
 
-        <!-- Ações -->
         <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 mt-2">
           <button type="button" onclick="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
           <button type="submit" class="px-4 py-2 text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-sm">Salvar Registro</button>
@@ -393,12 +417,12 @@
     </div>
   </div>
 
-  <!-- MODAL: PROGRAMAR / EDITAR RECORRÊNCIA -->
+  <!-- MODAL: PROGRAMAR RECORRÊNCIA -->
   <div id="modalRecurring" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <h3 id="modalRecurringTitle" class="text-base font-bold text-slate-900">Programar Recorrência</h3>
-        <button onclick="closeRecurringModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+        <button onclick="closeRecurringModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
           <i class="ph-bold ph-x text-lg"></i>
         </button>
       </div>
@@ -406,7 +430,6 @@
       <form id="formRecurring" onsubmit="saveRecurring(event)" class="flex flex-col gap-3.5">
         <input type="hidden" id="recurId">
 
-        <!-- Tipo -->
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Tipo</label>
           <div class="grid grid-cols-2 gap-2">
@@ -423,13 +446,13 @@
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Descrição</label>
-          <input type="text" id="recurDesc" required placeholder="Ex: Aluguel, Prolabore, Abastecimento semanal..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
+          <input type="text" id="recurDesc" required placeholder="Ex: Aluguel, Supermercado semanal..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Valor por Ocorrência (R$)</label>
-            <input type="number" step="0.01" min="0.01" id="recurAmount" required placeholder="0,00" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Valor Unitário (R$)</label>
+            <input type="number" step="0.01" min="0.01" id="recurAmount" required placeholder="0,00" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Frequência</label>
@@ -442,13 +465,11 @@
           </div>
         </div>
 
-        <!-- Dia do Vencimento (Mensal) -->
         <div id="fieldDueDay">
           <label class="block text-xs font-bold text-slate-700 mb-1">Dia do Vencimento (1 a 31)</label>
           <input type="number" id="recurDueDay" min="1" max="31" value="5" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
         </div>
 
-        <!-- Dia da Semana (Semanal) -->
         <div id="fieldWeekday" class="hidden">
           <label class="block text-xs font-bold text-slate-700 mb-1">Dia da Semana</label>
           <select id="recurWeekday" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none">
@@ -460,14 +481,11 @@
             <option value="5" selected>Sexta-feira</option>
             <option value="6">Sábado</option>
           </select>
-          <p class="text-[11px] text-slate-400 mt-1">O FinFlow calcula o total de vezes que esse dia ocorre no mês ativo (ex: 4 ou 5 ocorrências).</p>
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Categoria</label>
-          <select id="recurCategory" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none">
-            <!-- Preenchido via script -->
-          </select>
+          <select id="recurCategory" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none"></select>
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 mt-2">
@@ -478,35 +496,32 @@
     </div>
   </div>
 
-  <!-- MODAL: CONFIGURAÇÃO SUPABASE / NUVEM -->
+  <!-- MODAL: CONFIGURAÇÃO SUPABASE -->
   <div id="modalCloud" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div class="flex items-center gap-2">
           <i class="ph-bold ph-cloud text-xl text-sky-600"></i>
-          <h3 class="text-base font-bold text-slate-900">Conectar Supabase (Nuvem)</h3>
+          <h3 class="text-base font-bold text-slate-900">Configuração Supabase</h3>
         </div>
         <button onclick="closeCloudModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
           <i class="ph-bold ph-x text-lg"></i>
         </button>
       </div>
 
-      <div class="text-xs text-slate-600 space-y-2">
-        <p>Insira as credenciais do seu projeto no **Supabase** (obtidas em <em>Project Settings > API</em>):</p>
-      </div>
-
       <form id="formCloud" onsubmit="saveCloudConfig(event)" class="flex flex-col gap-3">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Project URL</label>
-          <input type="url" id="cfgSupabaseUrl" required placeholder="https://xyzcompany.supabase.co" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none font-mono">
+          <input type="url" id="cfgSupabaseUrl" required placeholder="https://mrlnczxqhdhptcdojwgh.supabase.co" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none font-mono">
+          <p class="text-[10px] text-slate-400 mt-1">Cole apenas a URL base (sem /rest/v1/)</p>
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Project Anon Key (Public API Key)</label>
-          <textarea id="cfgSupabaseKey" rows="3" required placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none font-mono"></textarea>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Project Anon Key</label>
+          <textarea id="cfgSupabaseKey" rows="3" required placeholder="Chave pública anon..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none font-mono"></textarea>
         </div>
 
         <div class="flex items-center justify-between pt-2 border-t border-slate-100 mt-2">
-          <button type="button" onclick="disconnectCloud()" class="text-xs text-rose-600 font-semibold hover:underline">Desconectar Nuvem</button>
+          <button type="button" onclick="disconnectCloud()" class="text-xs text-rose-600 font-semibold hover:underline">Limpar Chaves</button>
           <div class="flex gap-2">
             <button type="button" onclick="closeCloudModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Fechar</button>
             <button type="submit" class="px-4 py-2 text-xs font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-lg shadow-sm">Salvar e Conectar</button>
@@ -516,47 +531,20 @@
     </div>
   </div>
 
-  <!-- MODAL: LOGIN / CADASTRO DE USUÁRIO -->
-  <div id="modalAuth" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 id="authModalHeading" class="text-base font-bold text-slate-900">Acessar Conta</h3>
-        <button onclick="closeAuthModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
-          <i class="ph-bold ph-x text-lg"></i>
-        </button>
+  <!-- MODAL: PERFIL DO USUÁRIO CONECTADO -->
+  <div id="modalUser" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4 text-center">
+      <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg mx-auto">
+        <i class="ph-bold ph-user-check"></i>
       </div>
-
-      <!-- Visão Logado -->
-      <div id="viewUserLogged" class="hidden flex-col items-center gap-3 py-3 text-center">
-        <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">
-          <i class="ph-bold ph-user-check"></i>
-        </div>
-        <div>
-          <p class="text-xs text-slate-500">Conectado como:</p>
-          <p id="currentUserEmail" class="text-sm font-bold text-slate-900 break-all"></p>
-        </div>
-        <button onclick="signOut()" class="w-full mt-2 py-2 text-xs font-bold rounded-lg bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100">Sair da Conta</button>
+      <div>
+        <p class="text-xs text-slate-500">Conectado com:</p>
+        <p id="currentUserEmail" class="text-sm font-bold text-slate-900 break-all"></p>
       </div>
-
-      <!-- Visão Deslogado (Login / Cadastro) -->
-      <form id="formAuth" onsubmit="handleAuthSubmit(event)" class="flex flex-col gap-3">
-        <div class="flex border border-slate-200 rounded-lg p-0.5 bg-slate-100 text-xs font-semibold mb-1">
-          <button type="button" id="tabLogin" onclick="setAuthMode('login')" class="flex-1 py-1.5 rounded-md bg-white text-slate-900 shadow-sm">Entrar</button>
-          <button type="button" id="tabRegister" onclick="setAuthMode('register')" class="flex-1 py-1.5 rounded-md text-slate-600">Criar Conta</button>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">E-mail</label>
-          <input type="email" id="authEmail" required placeholder="seu@email.com" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Senha</label>
-          <input type="password" id="authPassword" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
-        </div>
-
-        <button type="submit" id="btnAuthSubmit" class="w-full mt-2 py-2 text-xs font-bold rounded-lg bg-brand-600 hover:bg-brand-700 text-white shadow-sm">Entrar</button>
-      </form>
+      <div class="flex flex-col gap-2 mt-2">
+        <button onclick="signOut()" class="w-full py-2.5 text-xs font-bold rounded-xl bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100">Sair da Conta</button>
+        <button onclick="closeUserModal()" class="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-800">Fechar</button>
+      </div>
     </div>
   </div>
 
@@ -568,43 +556,38 @@
       </div>
       <div>
         <h3 class="text-base font-bold text-slate-900">Gerenciador de Reset</h3>
-        <p class="text-xs text-slate-500 mt-1">Deseja limpar todos os lançamentos atuais ou preencher com dados demonstrativos?</p>
+        <p class="text-xs text-slate-500 mt-1">Deseja limpar todos os lançamentos ou restaurar os dados de exemplo?</p>
       </div>
 
       <div class="flex flex-col gap-2 pt-2">
-        <button onclick="restoreDemoData()" class="w-full py-2.5 px-3 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition">Carregar Dados de Demonstração</button>
-        <button onclick="clearAllData()" class="w-full py-2.5 px-3 text-xs font-bold rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition">Zerar Tudo (Limpar Dados)</button>
+        <button onclick="restoreDemoData()" class="w-full py-2.5 px-3 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition">Carregar Dados de Exemplo</button>
+        <button onclick="clearAllData()" class="w-full py-2.5 px-3 text-xs font-bold rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition">Zerar Tudo</button>
         <button onclick="closeResetModal()" class="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-800">Cancelar</button>
       </div>
     </div>
   </div>
 
   <script>
-    // --- CATEGORIAS PADRÃO ---
     const CATEGORIES = {
       income: ['Salário', 'Serviços / Freelance', 'Investimentos', 'Vendas', 'Outros'],
       expense: ['Moradia / Aluguel', 'Supermercado', 'Transporte / Combustível', 'Saúde', 'Educação', 'Lazer', 'Assinaturas', 'Outros']
     };
 
-    // --- ESTADO GLOBAL DA APLICAÇÃO ---
     let transactions = [];
     let recurringRules = [];
-    let currentPeriod = ''; // Ex: '2026-10'
-    let activeTab = 'dashboard';
-    let authMode = 'login';
+    let currentPeriod = '';
+    let gateAuthMode = 'login';
     let supabaseClient = null;
     let currentUser = null;
 
     let chartHistory = null;
     let chartCategory = null;
 
-    // --- INICIALIZAÇÃO ---
     window.addEventListener('DOMContentLoaded', async () => {
       initCurrentPeriod();
       populateCategoryDropdowns();
       initSupabase();
-      await loadInitialData();
-      renderApp();
+      await checkAuthGate();
     });
 
     function initCurrentPeriod() {
@@ -615,10 +598,13 @@
       document.getElementById('monthSelector').value = currentPeriod;
     }
 
-    // --- CONFIGURAÇÃO SUPABASE ---
     function initSupabase() {
-      const storedUrl = localStorage.getItem('finflow_supa_url');
-      const storedKey = localStorage.getItem('finflow_supa_key');
+      // Limpa qualquer barra ou path indevido caso o usuário tenha colado
+      let storedUrl = (localStorage.getItem('finflow_supa_url') || '').trim();
+      if (storedUrl.endsWith('/')) storedUrl = storedUrl.slice(0, -1);
+      if (storedUrl.includes('/rest/v1')) storedUrl = storedUrl.replace('/rest/v1', '');
+
+      const storedKey = (localStorage.getItem('finflow_supa_key') || '').trim();
 
       if (storedUrl && storedKey && window.supabase) {
         try {
@@ -628,53 +614,97 @@
           document.getElementById('labelCloudStatus').textContent = 'Nuvem Conectada';
           document.getElementById('syncBar').classList.add('hidden');
 
-          // Ouvinte de Auth
           supabaseClient.auth.onAuthStateChange(async (event, session) => {
             currentUser = session ? session.user : null;
             updateAuthHeader();
             if (currentUser) {
+              hideAuthGate();
               await fetchCloudData();
               subscribeRealtime();
             } else {
-              loadLocalData();
+              showAuthGate();
             }
-            renderApp();
           });
         } catch (e) {
           console.error("Falha ao inicializar Supabase:", e);
         }
-      } else {
-        document.getElementById('badgeStorageMode').textContent = 'Local';
-        document.getElementById('labelCloudStatus').textContent = 'Conectar Nuvem';
-        document.getElementById('syncBar').classList.remove('hidden');
       }
     }
 
-    // --- CARREGAMENTO DE DADOS (LOCAL vs NUVEM) ---
-    async function loadInitialData() {
+    // --- CONTROLE DE TELA INICIAL OBRIGATÓRIA (GATE) ---
+    async function checkAuthGate() {
       if (supabaseClient) {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session && session.user) {
           currentUser = session.user;
           updateAuthHeader();
+          hideAuthGate();
           await fetchCloudData();
           return;
         }
       }
-      loadLocalData();
+      // Se não há usuário logado, mantém o portão de login visível
+      showAuthGate();
     }
 
-    function loadLocalData() {
-      const storedTx = localStorage.getItem('finflow_transactions');
-      const storedRec = localStorage.getItem('finflow_recurring');
-      transactions = storedTx ? JSON.parse(storedTx) : [];
-      recurringRules = storedRec ? JSON.parse(storedRec) : [];
+    function showAuthGate() {
+      document.getElementById('authGateOverlay').classList.remove('hidden');
+    }
 
-      if (transactions.length === 0 && recurringRules.length === 0) {
-        loadDemoPresets();
+    function hideAuthGate() {
+      document.getElementById('authGateOverlay').classList.add('hidden');
+    }
+
+    function skipAuthToLocal() {
+      hideAuthGate();
+      loadLocalData();
+      renderApp();
+    }
+
+    function setGateAuthMode(mode) {
+      gateAuthMode = mode;
+      const tLog = document.getElementById('gateTabLogin');
+      const tReg = document.getElementById('gateTabRegister');
+      const submit = document.getElementById('btnGateAuthSubmit');
+
+      if (mode === 'login') {
+        tLog.className = 'flex-1 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition';
+        tReg.className = 'flex-1 py-1.5 rounded-lg text-slate-600 transition';
+        submit.textContent = 'Entrar no FinFlow';
+      } else {
+        tReg.className = 'flex-1 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition';
+        tLog.className = 'flex-1 py-1.5 rounded-lg text-slate-600 transition';
+        submit.textContent = 'Criar Minha Conta';
       }
     }
 
+    async function handleGateAuthSubmit(e) {
+      e.preventDefault();
+      if (!supabaseClient) {
+        alert('Antes de entrar, configure sua URL e Chave do Supabase clicando no link abaixo.');
+        openCloudModal();
+        return;
+      }
+
+      const email = document.getElementById('gateAuthEmail').value.trim();
+      const password = document.getElementById('gateAuthPassword').value;
+
+      try {
+        if (gateAuthMode === 'login') {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+        } else {
+          const { data, error } = await supabaseClient.auth.signUp({ email, password });
+          if (error) throw error;
+          alert('Conta criada com sucesso! Faça login para continuar.');
+          setGateAuthMode('login');
+        }
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      }
+    }
+
+    // --- CARREGAMENTO DE DADOS ---
     async function fetchCloudData() {
       if (!supabaseClient || !currentUser) return;
       try {
@@ -705,12 +735,23 @@
         .subscribe();
     }
 
+    function loadLocalData() {
+      const storedTx = localStorage.getItem('finflow_transactions');
+      const storedRec = localStorage.getItem('finflow_recurring');
+      transactions = storedTx ? JSON.parse(storedTx) : [];
+      recurringRules = storedRec ? JSON.parse(storedRec) : [];
+
+      if (transactions.length === 0 && recurringRules.length === 0) {
+        loadDemoPresets();
+      }
+    }
+
     function saveLocal() {
       localStorage.setItem('finflow_transactions', JSON.stringify(transactions));
       localStorage.setItem('finflow_recurring', JSON.stringify(recurringRules));
     }
 
-    // --- RECORRÊNCIA E CÁLCULO DE DIAS DA SEMANA NO MÊS ATUAL ---
+    // --- DIAS DA SEMANA E RECORRÊNCIA ---
     function getWeekdayDatesInMonth(year, month, weekday) {
       const dates = [];
       const date = new Date(year, month - 1, 1);
@@ -736,13 +777,12 @@
         const mo = String(month).padStart(2, '0');
         return [`${year}-${mo}-${d1}`, `${year}-${mo}-${d2}`];
       }
-      // Mensal ou Anual
       const d = String(rule.due_day || 5).padStart(2, '0');
       const mo = String(month).padStart(2, '0');
       return [`${year}-${mo}-${d}`];
     }
 
-    // --- RENDERIZAÇÃO PRINCIPAL ---
+    // --- RENDERIZAÇÃO ---
     function renderApp() {
       renderKPIs();
       renderTransactionHistory();
@@ -762,23 +802,18 @@
       }
 
       const type = document.getElementById('typeFilter').value;
-      if (type !== 'all') {
-        filtered = filtered.filter(t => t.type === type);
-      }
+      if (type !== 'all') filtered = filtered.filter(t => t.type === type);
 
       const cat = document.getElementById('categoryFilter').value;
-      if (cat !== 'all') {
-        filtered = filtered.filter(t => t.category === cat);
-      }
+      if (cat !== 'all') filtered = filtered.filter(t => t.category === cat);
 
       return filtered;
     }
 
     function renderKPIs() {
-      // Saldo Geral Consolidado (Tudo)
       const generalBalance = transactions.reduce((acc, t) => acc + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0);
       document.getElementById('cardTotalBalance').textContent = formatCurrency(generalBalance);
-      
+
       const balStatus = document.getElementById('cardBalanceStatus');
       if (generalBalance > 0) {
         balStatus.textContent = 'Saldo positivo consolidado';
@@ -791,7 +826,6 @@
         balStatus.className = 'text-xs text-slate-500 mt-1';
       }
 
-      // KPIs do Mês
       const monthTx = currentPeriod ? transactions.filter(t => t.date.startsWith(currentPeriod)) : transactions;
       const monthIncome = monthTx.filter(t => t.type === 'income').reduce((a, b) => a + Number(b.amount), 0);
       const monthExpense = monthTx.filter(t => t.type === 'expense').reduce((a, b) => a + Number(b.amount), 0);
@@ -802,7 +836,6 @@
       document.getElementById('cardTotalExpense').textContent = formatCurrency(monthExpense);
       document.getElementById('cardExpenseCount').textContent = `${monthTx.filter(t => t.type === 'expense').length} lançamentos`;
 
-      // Previsões Programadas Pendentes no Mês
       let pendingExp = 0;
       let pendingInc = 0;
       let pendingCount = 0;
@@ -812,8 +845,8 @@
         recurringRules.forEach(rule => {
           const expectedDates = getRecurrenceDatesForMonth(rule, y, m);
           expectedDates.forEach(expectedDate => {
-            const alreadyPaid = transactions.some(t => t.recurring_id === rule.id && t.date === expectedDate);
-            if (!alreadyPaid) {
+            const already = transactions.some(t => t.recurring_id === rule.id && t.date === expectedDate);
+            if (!already) {
               pendingCount++;
               if (rule.type === 'expense') pendingExp += Number(rule.amount);
               else pendingInc += Number(rule.amount);
@@ -857,7 +890,6 @@
         const valColor = isIncome ? 'text-emerald-600' : 'text-rose-600';
         const badgeBg = isIncome ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700';
 
-        // Linha Desktop
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
         tr.innerHTML = `
@@ -884,7 +916,6 @@
         `;
         tBody.appendChild(tr);
 
-        // Card Mobile
         const card = document.createElement('div');
         card.className = 'p-3 flex items-center justify-between gap-3';
         card.innerHTML = `
@@ -972,7 +1003,7 @@
 
           <div>
             <div class="flex items-center justify-between text-xs mb-1.5">
-              <span class="font-semibold text-slate-700">Ocorrências em ${currentPeriod}:</span>
+              <span class="font-semibold text-slate-700">Ocorrências no Mês:</span>
               <span class="text-[11px] font-bold ${allDone ? 'text-emerald-600' : 'text-amber-600'}">${fulfilledCount} de ${totalExpected} lançadas</span>
             </div>
             <div class="flex flex-wrap gap-1.5">
@@ -985,7 +1016,6 @@
     }
 
     function renderCharts() {
-      // 1. Gráfico Histórico (Últimos 6 meses)
       const ctxH = document.getElementById('chartHistory').getContext('2d');
       const monthsBack = 6;
       const labels = [];
@@ -1023,7 +1053,6 @@
         }
       });
 
-      // 2. Gráfico por Categoria (Período ativo)
       const ctxC = document.getElementById('chartCategory').getContext('2d');
       const activeExpenses = currentPeriod ? transactions.filter(t => t.type === 'expense' && t.date.startsWith(currentPeriod)) : transactions.filter(t => t.type === 'expense');
       const catMap = {};
@@ -1270,7 +1299,7 @@
       alert(`${toInsert.length} ocorrência(s) efetivada(s) com sucesso!`);
     }
 
-    // --- AUTENTICAÇÃO E CONEXÃO SUPABASE ---
+    // --- CONFIGURAÇÃO DE NUVEM & AUTENTICAÇÃO HEADER ---
     function openCloudModal() {
       document.getElementById('cfgSupabaseUrl').value = localStorage.getItem('finflow_supa_url') || '';
       document.getElementById('cfgSupabaseKey').value = localStorage.getItem('finflow_supa_key') || '';
@@ -1283,7 +1312,10 @@
 
     function saveCloudConfig(e) {
       e.preventDefault();
-      const url = document.getElementById('cfgSupabaseUrl').value.trim();
+      let url = document.getElementById('cfgSupabaseUrl').value.trim();
+      if (url.endsWith('/')) url = url.slice(0, -1);
+      if (url.includes('/rest/v1')) url = url.replace('/rest/v1', '');
+
       const key = document.getElementById('cfgSupabaseKey').value.trim();
       localStorage.setItem('finflow_supa_url', url);
       localStorage.setItem('finflow_supa_key', key);
@@ -1292,7 +1324,7 @@
     }
 
     function disconnectCloud() {
-      if (!confirm('Deseja desconectar a nuvem e voltar ao modo LocalStorage?')) return;
+      if (!confirm('Deseja limpar as credenciais salvas?')) return;
       localStorage.removeItem('finflow_supa_url');
       localStorage.removeItem('finflow_supa_key');
       closeCloudModal();
@@ -1301,71 +1333,23 @@
 
     function handleAuthClick() {
       if (currentUser) {
-        document.getElementById('viewUserLogged').classList.remove('hidden');
-        document.getElementById('formAuth').classList.add('hidden');
         document.getElementById('currentUserEmail').textContent = currentUser.email;
+        document.getElementById('modalUser').classList.remove('hidden');
       } else {
-        document.getElementById('viewUserLogged').classList.add('hidden');
-        document.getElementById('formAuth').classList.remove('hidden');
-        setAuthMode('login');
-      }
-      document.getElementById('modalAuth').classList.remove('hidden');
-    }
-
-    function closeAuthModal() {
-      document.getElementById('modalAuth').classList.add('hidden');
-    }
-
-    function setAuthMode(mode) {
-      authMode = mode;
-      const bLog = document.getElementById('tabLogin');
-      const bReg = document.getElementById('tabRegister');
-      const submit = document.getElementById('btnAuthSubmit');
-
-      if (mode === 'login') {
-        bLog.className = 'flex-1 py-1.5 rounded-md bg-white text-slate-900 shadow-sm';
-        bReg.className = 'flex-1 py-1.5 rounded-md text-slate-600';
-        submit.textContent = 'Entrar';
-      } else {
-        bReg.className = 'flex-1 py-1.5 rounded-md bg-white text-slate-900 shadow-sm';
-        bLog.className = 'flex-1 py-1.5 rounded-md text-slate-600';
-        submit.textContent = 'Criar Nova Conta';
+        showAuthGate();
       }
     }
 
-    async function handleAuthSubmit(e) {
-      e.preventDefault();
-      if (!supabaseClient) {
-        alert('Configure primeiro a URL e Chave do Supabase no botão "Conectar Nuvem".');
-        return;
-      }
-
-      const email = document.getElementById('authEmail').value.trim();
-      const password = document.getElementById('authPassword').value;
-
-      try {
-        if (authMode === 'login') {
-          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-          alert('Login realizado com sucesso!');
-        } else {
-          const { data, error } = await supabaseClient.auth.signUp({ email, password });
-          if (error) throw error;
-          alert('Conta criada com sucesso! Se você desativou a confirmação de e-mail, seu login já está pronto.');
-        }
-        closeAuthModal();
-      } catch (err) {
-        alert('Erro de autenticação: ' + err.message);
-      }
+    function closeUserModal() {
+      document.getElementById('modalUser').classList.add('hidden');
     }
 
     async function signOut() {
       if (supabaseClient) await supabaseClient.auth.signOut();
       currentUser = null;
-      closeAuthModal();
+      closeUserModal();
       updateAuthHeader();
-      loadLocalData();
-      renderApp();
+      showAuthGate();
     }
 
     function updateAuthHeader() {
@@ -1380,7 +1364,6 @@
       }
     }
 
-    // --- CONTROLE DE NAVEGAÇÃO E MODAIS ---
     function switchTab(tab) {
       activeTab = tab;
       const vD = document.getElementById('viewDashboard');
@@ -1432,9 +1415,7 @@
       document.getElementById('modalTransaction').classList.remove('hidden');
     }
 
-    function closeModal() {
-      document.getElementById('modalTransaction').classList.add('hidden');
-    }
+    function closeModal() { document.getElementById('modalTransaction').classList.add('hidden'); }
 
     function openRecurringModal() {
       document.getElementById('modalRecurringTitle').textContent = 'Programar Recorrência';
@@ -1445,9 +1426,7 @@
       document.getElementById('modalRecurring').classList.remove('hidden');
     }
 
-    function closeRecurringModal() {
-      document.getElementById('modalRecurring').classList.add('hidden');
-    }
+    function closeRecurringModal() { document.getElementById('modalRecurring').classList.add('hidden'); }
 
     function onFrequencyChange() {
       const freq = document.getElementById('recurFrequency').value;
@@ -1545,7 +1524,6 @@
       a.click();
     }
 
-    // --- UTILITÁRIOS ---
     function formatCurrency(v) {
       return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
