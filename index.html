@@ -3,34 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FinFlow - Gerenciador Financeiro Pessoal</title>
-
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+  <title>FinFlow - Gestão Financeira Cloud</title>
+  
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Font Awesome 6 Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
-          },
           colors: {
             brand: {
-              50: '#f0fdf4',
-              100: '#dcfce7',
+              50: '#ecfdf5',
+              100: '#d1fae5',
               500: '#10b981',
               600: '#059669',
               700: '#047857',
@@ -40,2050 +31,1548 @@
       }
     }
   </script>
-
   <style>
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #f1f5f9; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    .modal-backdrop { backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
-    .card-hover { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease; }
-    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 9999px;
+    }
   </style>
 </head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
 
-<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col selection:bg-emerald-100 selection:text-emerald-800">
-
-  <!-- Global Header -->
-  <header class="sticky top-0 z-30 bg-white/90 border-b border-slate-200/80 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        
-        <!-- Brand Logo -->
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
-            <i class="fa-solid fa-wallet text-lg"></i>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="font-extrabold text-xl tracking-tight text-slate-900">Fin<span class="text-emerald-600">Flow</span></span>
-              <span class="hidden sm:inline-block text-[11px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">Pro Recorrência</span>
-            </div>
-            <p class="text-[10px] text-slate-400 font-medium hidden sm:block">Controle Financeiro com Calendário Semanal Real</p>
-          </div>
+  <!-- Header Principal -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+          <i class="ph-bold ph-wallet text-2xl"></i>
         </div>
-
-        <!-- Action Buttons -->
-        <div class="flex items-center space-x-2 sm:space-x-3">
-          <button id="btnOpenResetModal" title="Resetar ou Restaurar Dados" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-700 transition flex items-center gap-1.5 border border-slate-200/80">
-            <i class="fa-solid fa-arrows-rotate text-xs"></i>
-            <span class="hidden md:inline">Resetar Dados</span>
-          </button>
-
-          <button id="btnExportData" title="Exportar Movimentações em CSV" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1.5 border border-slate-200/80">
-            <i class="fa-solid fa-file-arrow-down text-slate-500 text-xs"></i>
-            <span class="hidden md:inline">Exportar CSV</span>
-          </button>
-          
-          <button id="btnOpenNewModal" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm px-3.5 sm:px-4 py-2 rounded-xl shadow-md shadow-emerald-600/25 transition active:scale-95">
-            <i class="fa-solid fa-plus text-xs"></i>
-            <span>Nova Movimentação</span>
-          </button>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-none">FinFlow</h1>
+            <span id="badgeStorageMode" class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Local</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Gestão Financeira Multidispositivo</p>
         </div>
+      </div>
+
+      <!-- Ações do Topo -->
+      <div class="flex items-center flex-wrap gap-2.5">
+        <!-- Botão Nuvem / Conexão -->
+        <button id="btnOpenCloudModal" onclick="openCloudModal()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
+          <i class="ph-bold ph-cloud text-base text-sky-600"></i>
+          <span id="labelCloudStatus">Conectar Nuvem</span>
+        </button>
+
+        <!-- Botão Auth (Login / Perfil) -->
+        <button id="btnOpenAuthModal" onclick="handleAuthClick()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
+          <i id="authIcon" class="ph-bold ph-user text-base text-slate-600"></i>
+          <span id="labelAuthStatus">Entrar / Cadastrar</span>
+        </button>
+
+        <!-- Botão Resetar Dados -->
+        <button onclick="openResetModal()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 transition shadow-sm">
+          <i class="ph-bold ph-arrows-counter-clockwise text-base text-amber-500"></i>
+          <span class="hidden sm:inline">Resetar</span>
+        </button>
+
+        <!-- Botão Exportar CSV -->
+        <button onclick="exportCSV()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 transition shadow-sm">
+          <i class="ph-bold ph-download-simple text-base text-slate-500"></i>
+          <span class="hidden sm:inline">Exportar CSV</span>
+        </button>
+
+        <!-- Botão Nova Movimentação -->
+        <button onclick="openModal()" class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition shadow-sm shadow-brand-600/30">
+          <i class="ph-bold ph-plus text-base"></i>
+          <span>Nova Movimentação</span>
+        </button>
       </div>
     </div>
   </header>
 
-  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <!-- Barra de Notificação de Status de Sincronização -->
+  <div id="syncBar" class="bg-amber-50 border-b border-amber-200 text-amber-800 text-xs py-1.5 px-4 text-center flex items-center justify-center gap-2">
+    <i class="ph-fill ph-info"></i>
+    <span>Armazenamento local ativo. Conecte o Supabase no botão acima para sincronizar automaticamente no celular e PC.</span>
+  </div>
 
-    <!-- View Mode Switcher -->
-    <div class="flex items-center justify-between border-b border-slate-200 pb-3 gap-2 flex-wrap">
-      <div class="inline-flex p-1 bg-slate-200/70 rounded-2xl text-xs font-bold text-slate-600">
-        <button id="tabDashboard" class="view-tab-btn px-4 py-2 rounded-xl bg-white text-slate-900 shadow-sm flex items-center gap-2 transition">
-          <i class="fa-solid fa-chart-pie"></i>
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col gap-6">
+
+    <!-- Navegação de Abas -->
+    <div class="flex flex-wrap items-center justify-between border-b border-slate-200 pb-3 gap-3">
+      <div class="flex items-center gap-2">
+        <button onclick="switchTab('dashboard')" id="tabDash" class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-brand-50 text-brand-700 border border-brand-200 flex items-center gap-2">
+          <i class="ph-bold ph-chart-pie-slice"></i>
           <span>Painel & Movimentações</span>
         </button>
-        <button id="tabScheduled" class="view-tab-btn px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 flex items-center gap-2 transition">
-          <i class="fa-solid fa-calendar-days"></i>
+        <button onclick="switchTab('recurring')" id="tabRecur" class="px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2">
+          <i class="ph-bold ph-calendar-check"></i>
           <span>Programadas & Recorrência</span>
-          <span id="badgeScheduledPending" class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">0</span>
+          <span id="badgePendingCount" class="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold hidden">0</span>
         </button>
       </div>
 
-      <div class="text-xs text-slate-500 flex items-center gap-2 font-medium">
-        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        Sincronizado localmente (LocalStorage)
+      <!-- Filtro de Mês/Período -->
+      <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm text-sm">
+        <button onclick="changeMonth(-1)" class="p-1 text-slate-500 hover:text-slate-800 rounded hover:bg-slate-100" title="Mês anterior">
+          <i class="ph-bold ph-caret-left"></i>
+        </button>
+        <input type="month" id="monthSelector" onchange="onMonthChange()" class="text-sm font-semibold text-slate-700 bg-transparent focus:outline-none cursor-pointer">
+        <button onclick="changeMonth(1)" class="p-1 text-slate-500 hover:text-slate-800 rounded hover:bg-slate-100" title="Próximo mês">
+          <i class="ph-bold ph-caret-right"></i>
+        </button>
+        <button onclick="setAllPeriod()" class="text-xs font-semibold px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition ml-1">Todo Período</button>
       </div>
     </div>
 
-    <!-- Monthly Navigation Bar -->
-    <section class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div class="flex items-center justify-between md:justify-start gap-3">
-        <button id="btnPrevMonth" class="p-2.5 rounded-xl hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 transition" title="Mês Anterior">
-          <i class="fa-solid fa-chevron-left text-sm"></i>
-        </button>
+    <!-- ABA 1: PAINEL & TRANSAÇÕES -->
+    <div id="viewDashboard" class="flex flex-col gap-6">
 
-        <div class="text-center md:text-left min-w-[200px]">
-          <span class="text-[11px] uppercase font-bold tracking-wider text-slate-400 block" id="periodSubtitle">Visualização Mensal</span>
-          <h2 class="text-lg font-bold text-slate-800" id="currentPeriodLabel">Carregando...</h2>
-        </div>
-
-        <button id="btnNextMonth" class="p-2.5 rounded-xl hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 transition" title="Próximo Mês">
-          <i class="fa-solid fa-chevron-right text-sm"></i>
-        </button>
-      </div>
-
-      <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-        <input type="month" id="monthPickerInput" class="text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
-        
-        <button id="btnShowAllMonths" class="text-xs sm:text-sm font-semibold px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition">
-          Todo Período
-        </button>
-
-        <button id="btnGoCurrentMonth" class="text-xs sm:text-sm font-semibold px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition">
-          Mês Atual
-        </button>
-      </div>
-    </section>
-
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      
-      <!-- Total Receitas -->
-      <div class="card-hover bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden flex flex-col justify-between">
-        <div>
+      <!-- Cards de Indicadores (KPIs) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Saldo Consolidado -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] uppercase font-bold tracking-wider text-slate-500">Receitas do Mês</span>
-            <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold">
-              <i class="fa-solid fa-arrow-down-left"></i>
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Saldo Consolidado</span>
+            <div id="iconBalanceBg" class="w-9 h-9 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600">
+              <i class="ph-bold ph-scales text-lg"></i>
             </div>
           </div>
-          <div class="mt-3">
-            <div class="text-2xl font-extrabold text-emerald-600 tracking-tight" id="kpiIncome">R$ 0,00</div>
-            <p class="text-xs text-slate-500 mt-1" id="kpiIncomeCount">0 registros realizados</p>
+          <div class="mt-4">
+            <h3 id="cardTotalBalance" class="text-2xl font-black text-slate-900 tracking-tight">R$ 0,00</h3>
+            <p id="cardBalanceStatus" class="text-xs text-slate-500 mt-1">Saldo neutro / zerado</p>
           </div>
         </div>
-        <div class="mt-3 pt-2 border-t border-slate-100 text-[11px] text-slate-400 flex justify-between">
-          <span>Consolidado geral:</span>
-          <span class="font-bold text-slate-600" id="kpiAllTimeIncome">R$ 0,00</span>
-        </div>
-        <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
-      </div>
 
-      <!-- Total Despesas -->
-      <div class="card-hover bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden flex flex-col justify-between">
-        <div>
+        <!-- Receitas do Mês -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] uppercase font-bold tracking-wider text-slate-500">Despesas do Mês</span>
-            <div class="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500 font-bold">
-              <i class="fa-solid fa-arrow-up-right"></i>
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Receitas do Mês</span>
+            <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <i class="ph-bold ph-arrow-up-right text-lg"></i>
             </div>
           </div>
-          <div class="mt-3">
-            <div class="text-2xl font-extrabold text-rose-500 tracking-tight" id="kpiExpense">R$ 0,00</div>
-            <p class="text-xs text-slate-500 mt-1" id="kpiExpenseCount">0 registros realizados</p>
+          <div class="mt-4">
+            <h3 id="cardTotalIncome" class="text-2xl font-black text-emerald-600 tracking-tight">R$ 0,00</h3>
+            <p id="cardIncomeCount" class="text-xs text-slate-500 mt-1">0 lançamentos</p>
           </div>
         </div>
-        <div class="mt-3 pt-2 border-t border-slate-100 text-[11px] text-slate-400 flex justify-between">
-          <span>Consolidado geral:</span>
-          <span class="font-bold text-slate-600" id="kpiAllTimeExpense">R$ 0,00</span>
-        </div>
-        <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 to-rose-600"></div>
-      </div>
 
-      <!-- Saldo Consolidado -->
-      <div class="card-hover bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden flex flex-col justify-between">
-        <div>
+        <!-- Despesas do Mês -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] uppercase font-bold tracking-wider text-slate-500">Saldo Consolidado</span>
-            <div id="kpiBalanceIconBox" class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold">
-              <i class="fa-solid fa-scale-balanced"></i>
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Despesas do Mês</span>
+            <div class="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
+              <i class="ph-bold ph-arrow-down-left text-lg"></i>
             </div>
           </div>
-          <div class="mt-3">
-            <div class="text-2xl font-extrabold text-slate-900 tracking-tight" id="kpiBalance">R$ 0,00</div>
-            <p class="text-xs text-slate-500 mt-1" id="kpiBalanceStatus">Balanço do período</p>
+          <div class="mt-4">
+            <h3 id="cardTotalExpense" class="text-2xl font-black text-rose-600 tracking-tight">R$ 0,00</h3>
+            <p id="cardExpenseCount" class="text-xs text-slate-500 mt-1">0 lançamentos</p>
           </div>
         </div>
-        <div class="mt-3 pt-2 border-t border-slate-100 text-[11px] text-slate-400 flex justify-between">
-          <span>Saldo Geral Acumulado:</span>
-          <span class="font-bold text-slate-700" id="kpiAllTimeBalance">R$ 0,00</span>
-        </div>
-        <div id="kpiBalanceBar" class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
-      </div>
 
-      <!-- Previsão com Calendário do Mês -->
-      <div class="card-hover bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden flex flex-col justify-between">
-        <div>
+        <!-- Previsões Programadas -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] uppercase font-bold tracking-wider text-slate-500">Previsão Recorrente (Mês)</span>
-            <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 font-bold">
-              <i class="fa-solid fa-clock"></i>
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Previsões do Mês</span>
+            <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+              <i class="ph-bold ph-clock-countdown text-lg"></i>
             </div>
           </div>
-          <div class="mt-3">
-            <div class="text-sm font-bold text-slate-800 flex items-baseline justify-between">
-              <span class="text-xs text-slate-500">Despesas Previstas:</span>
-              <span class="text-rose-600 font-extrabold" id="kpiScheduledExpense">R$ 0,00</span>
+          <div class="mt-4">
+            <div class="flex items-center justify-between text-xs font-medium">
+              <span class="text-slate-500">Desp. Previstas:</span>
+              <span id="cardPendingExpense" class="text-rose-600 font-bold">R$ 0,00</span>
             </div>
-            <div class="text-sm font-bold text-slate-800 flex items-baseline justify-between mt-1">
-              <span class="text-xs text-slate-500">Receitas Previstas:</span>
-              <span class="text-emerald-600 font-extrabold" id="kpiScheduledIncome">R$ 0,00</span>
+            <div class="flex items-center justify-between text-xs font-medium mt-1">
+              <span class="text-slate-500">Rec. Previstas:</span>
+              <span id="cardPendingIncome" class="text-emerald-600 font-bold">R$ 0,00</span>
             </div>
+            <p id="cardPendingText" class="text-[11px] text-amber-700 font-semibold mt-2 pt-1 border-t border-slate-100">0 itens pendentes</p>
           </div>
         </div>
-        <div class="mt-3 pt-2 border-t border-slate-100 text-[11px] text-amber-700 flex justify-between items-center bg-amber-50/70 px-2 py-1 rounded-lg">
-          <span id="kpiScheduledPendingInfo" class="font-semibold">0 pendentes neste mês</span>
-          <i class="fa-solid fa-arrow-right text-[10px]"></i>
-        </div>
-        <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-amber-600"></div>
       </div>
 
-    </section>
-
-    <div id="viewDashboardContainer" class="space-y-6">
-
-      <!-- Visual Charts -->
-      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- Bar Chart: Receitas vs Despesas -->
-        <div class="lg:col-span-7 bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+      <!-- Gráficos Visuais -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3 class="font-bold text-slate-800 text-sm sm:text-base">Evolução Mensal (Receitas vs Despesas)</h3>
-              <p class="text-xs text-slate-500">Comparativo dos últimos 6 meses</p>
-            </div>
-            <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg">Tendência</span>
+            <h4 class="text-sm font-bold text-slate-800">Evolução Mensal (Receitas vs Despesas)</h4>
+            <span class="text-xs text-slate-500">Últimos 6 meses</span>
           </div>
-          <div class="relative w-full h-64">
-            <canvas id="monthlyComparisonChart"></canvas>
+          <div class="h-64 relative">
+            <canvas id="chartHistory"></canvas>
           </div>
         </div>
 
-        <!-- Donut Chart: Despesas por Categoria -->
-        <div class="lg:col-span-5 bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
           <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3 class="font-bold text-slate-800 text-sm sm:text-base">Despesas por Categoria</h3>
-              <p class="text-xs text-slate-500" id="categoryChartSubtitle">Distribuição no período ativo</p>
-            </div>
-            <span class="text-xs font-semibold px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg">Categorias</span>
+            <h4 class="text-sm font-bold text-slate-800">Despesas por Categoria</h4>
+            <span class="text-xs text-slate-500">Período ativo</span>
           </div>
-          <div class="relative w-full h-64 flex items-center justify-center">
-            <canvas id="categoryDonutChart"></canvas>
-            <div id="emptyCategoryChartMsg" class="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs text-center p-4">
-              <i class="fa-solid fa-chart-pie text-3xl mb-2 text-slate-300"></i>
-              Nenhuma despesa registrada no período selecionado
+          <div class="h-64 relative flex items-center justify-center">
+            <canvas id="chartCategory"></canvas>
+            <div id="noChartCategory" class="absolute inset-0 flex items-center justify-center text-xs text-slate-400 hidden">
+              Sem dados de despesas neste período
             </div>
           </div>
         </div>
+      </div>
 
-      </section>
-
-      <!-- Transactions Section -->
-      <section class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        
-        <!-- Filter Bar -->
-        <div class="p-5 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <h3 class="font-bold text-slate-800 text-base sm:text-lg">Histórico de Transações</h3>
-            <p class="text-xs text-slate-500">Movimentações efetivadas e lançadas</p>
+      <!-- Histórico de Transações -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        <!-- Barra de Filtros e Busca da Tabela -->
+        <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <h4 class="text-base font-bold text-slate-900">Histórico de Transações</h4>
+            <span id="countTransactionsBadge" class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">0</span>
           </div>
 
-          <div class="flex flex-wrap items-center gap-3">
+          <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+            <!-- Busca -->
             <div class="relative flex-1 sm:w-56">
-              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-              <input type="text" id="searchInput" placeholder="Buscar descrição..." class="w-full text-xs sm:text-sm pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+              <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+              <input type="text" id="searchFilter" oninput="renderApp()" placeholder="Buscar lançamentos..." class="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
             </div>
 
-            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200/80 text-xs font-semibold">
-              <button class="filter-tab px-3 py-1.5 rounded-lg text-slate-800 bg-white shadow-xs transition" data-filter="all">Todas</button>
-              <button class="filter-tab px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition" data-filter="income">Receitas</button>
-              <button class="filter-tab px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition" data-filter="expense">Despesas</button>
-            </div>
+            <!-- Filtro de Tipo -->
+            <select id="typeFilter" onchange="renderApp()" class="text-xs rounded-lg border border-slate-200 py-1.5 px-3 bg-white focus:outline-none focus:border-brand-500">
+              <option value="all">Todos os Tipos</option>
+              <option value="income">Apenas Receitas</option>
+              <option value="expense">Apenas Despesas</option>
+            </select>
 
-            <select id="categoryFilter" class="text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-              <option value="all">Todas Categorias</option>
+            <!-- Filtro de Categoria -->
+            <select id="categoryFilter" onchange="renderApp()" class="text-xs rounded-lg border border-slate-200 py-1.5 px-3 bg-white focus:outline-none focus:border-brand-500">
+              <option value="all">Todas as Categorias</option>
             </select>
           </div>
         </div>
 
-        <!-- Desktop Table View -->
-        <div class="hidden md:block overflow-x-auto">
-          <table class="w-full text-left text-sm text-slate-600">
-            <thead class="bg-slate-50/80 text-slate-500 uppercase text-[11px] font-bold tracking-wider border-b border-slate-100">
+        <!-- Tabela Desktop -->
+        <div class="hidden sm:block overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
               <tr>
-                <th scope="col" class="px-6 py-3.5">Descrição</th>
-                <th scope="col" class="px-6 py-3.5">Categoria</th>
-                <th scope="col" class="px-6 py-3.5">Data</th>
-                <th scope="col" class="px-6 py-3.5 text-right">Valor</th>
-                <th scope="col" class="px-6 py-3.5 text-center">Ações</th>
+                <th class="py-3 px-4">Tipo</th>
+                <th class="py-3 px-4">Descrição</th>
+                <th class="py-3 px-4">Categoria</th>
+                <th class="py-3 px-4">Data</th>
+                <th class="py-3 px-4 text-right">Valor</th>
+                <th class="py-3 px-4 text-center">Ações</th>
               </tr>
             </thead>
-            <tbody id="transactionsTableBody" class="divide-y divide-slate-100">
+            <tbody id="transactionTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
+              <!-- Renderizado via JavaScript -->
             </tbody>
           </table>
         </div>
 
-        <!-- Mobile View (Cards) -->
-        <div id="transactionsMobileList" class="md:hidden divide-y divide-slate-100 p-3 space-y-2">
+        <!-- Lista Mobile -->
+        <div id="transactionMobileList" class="sm:hidden divide-y divide-slate-100 p-2">
+          <!-- Renderizado via JavaScript -->
         </div>
 
-        <!-- Empty State Container -->
-        <div id="emptyStateContainer" class="hidden py-14 px-4 text-center">
-          <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto text-slate-400 text-2xl mb-3">
-            <i class="fa-regular fa-folder-open"></i>
-          </div>
-          <h4 class="text-slate-700 font-bold text-sm sm:text-base">Nenhuma movimentação encontrada</h4>
-          <p class="text-slate-400 text-xs max-w-sm mx-auto mt-1">Não há registros para os filtros selecionados. Crie uma movimentação ou altere o período.</p>
-          <button id="btnEmptyAdd" class="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-sm transition">
-            <i class="fa-solid fa-plus mr-1"></i> Adicionar Transação
-          </button>
+        <!-- Estado Vazio -->
+        <div id="emptyStateTransactions" class="p-10 text-center flex flex-col items-center justify-center text-slate-400 hidden">
+          <i class="ph-bold ph-receipt text-4xl mb-2 text-slate-300"></i>
+          <p class="text-sm font-semibold text-slate-600">Nenhuma movimentação encontrada</p>
+          <p class="text-xs text-slate-400 mt-0.5">Cadastre uma nova transação ou altere o período do filtro.</p>
         </div>
-
-        <!-- Summary Footer -->
-        <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
-          <span id="transactionsSummaryCount">Exibindo 0 movimentações</span>
-          <span class="text-slate-400">Total filtrado do período exibido</span>
-        </div>
-      </section>
+      </div>
 
     </div>
 
-    <div id="viewScheduledContainer" class="hidden space-y-6">
-
-      <!-- Header Banner with Instructions -->
-      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <!-- ABA 2: PROGRAMADAS & RECORRÊNCIAS -->
+    <div id="viewRecurring" class="flex flex-col gap-6 hidden">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold mb-2">
-            <i class="fa-solid fa-calendar-week"></i> Gestão de Recorrências & Calendário Real
-          </div>
-          <h2 class="text-xl sm:text-2xl font-black">Receitas e Despesas Recorrentes</h2>
-          <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
-            Edite qualquer recorrência a qualquer momento. Para itens semanais (ex: toda sexta-feira), o sistema calcula exatamente quantas ocorrências reais existem no mês ativo, permitindo lançar ocorrência a ocorrência ou todas de uma vez.
-          </p>
+          <h3 class="text-base font-bold text-slate-900">Receitas e Despesas Programadas</h3>
+          <p class="text-xs text-slate-500 mt-1">Gerencie compromissos fixos e semanais com cálculo exato de dias no calendário.</p>
         </div>
-
-        <button id="btnOpenNewScheduledModal" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/30 transition flex items-center gap-2">
-          <i class="fa-solid fa-plus"></i>
-          <span>Nova Recorrência</span>
-        </button>
-      </div>
-
-      <!-- Recurrence Statistics Summary -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Receitas Projetadas (Mês Ativo)</span>
-          <div class="text-xl font-extrabold text-emerald-600 mt-1" id="statScheduledIncome">R$ 0,00</div>
-          <p class="text-[11px] text-slate-400 mt-0.5" id="statScheduledIncomeCount">0 itens</p>
-        </div>
-
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Despesas Projetadas (Mês Ativo)</span>
-          <div class="text-xl font-extrabold text-rose-500 mt-1" id="statScheduledExpense">R$ 0,00</div>
-          <p class="text-[11px] text-slate-400 mt-0.5" id="statScheduledExpenseCount">0 itens</p>
-        </div>
-
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Efetivação no Mês</span>
-          <div class="text-xl font-extrabold text-indigo-600 mt-1" id="statScheduledStatusProgress">0 / 0 Lançados</div>
-          <p class="text-[11px] text-slate-500 mt-0.5" id="statScheduledStatusDesc">Ocorrências contabilizadas no calendário</p>
-        </div>
-      </div>
-
-      <!-- Recurrence Table & Cards with granular date chips -->
-      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h3 class="font-bold text-slate-800 text-base">Grade de Recorrências Cadastradas</h3>
-            <p class="text-xs text-slate-500">Clique em <strong class="text-slate-700">Editar</strong> para mudar valores, frequência ou dia da semana/mês</p>
-          </div>
-          <button id="btnPostAllScheduled" class="text-xs font-bold px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl border border-indigo-200 transition flex items-center gap-1.5 self-start sm:self-auto">
-            <i class="fa-solid fa-bolt-lightning text-amber-500"></i>
-            <span>Lançar Todos os Pendentes no Mês</span>
+        <div class="flex items-center gap-2">
+          <button onclick="fulfillAllPendingCurrentMonth()" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition flex items-center gap-1.5">
+            <i class="ph-bold ph-check-square-offset text-base"></i>
+            <span>Efetivar Todos Pendentes no Mês</span>
+          </button>
+          <button onclick="openRecurringModal()" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition flex items-center gap-1.5">
+            <i class="ph-bold ph-plus text-base"></i>
+            <span>Nova Programação</span>
           </button>
         </div>
-
-        <!-- Desktop Table -->
-        <div class="hidden md:block overflow-x-auto">
-          <table class="w-full text-left text-sm text-slate-600">
-            <thead class="bg-slate-50/80 text-slate-500 uppercase text-[11px] font-bold tracking-wider border-b border-slate-100">
-              <tr>
-                <th scope="col" class="px-6 py-3.5">Título / Descrição</th>
-                <th scope="col" class="px-6 py-3.5">Frequência & Calendário</th>
-                <th scope="col" class="px-6 py-3.5 text-right">Valor Unitário / Total Mês</th>
-                <th scope="col" class="px-6 py-3.5 text-center">Status no Mês Atual</th>
-                <th scope="col" class="px-6 py-3.5 text-center">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="scheduledTableBody" class="divide-y divide-slate-100">
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Mobile Cards -->
-        <div id="scheduledMobileList" class="md:hidden divide-y divide-slate-100 p-3 space-y-3">
-        </div>
-
-        <!-- Empty State -->
-        <div id="emptyScheduledContainer" class="hidden py-12 px-4 text-center">
-          <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto text-amber-500 text-xl mb-3">
-            <i class="fa-solid fa-calendar-plus"></i>
-          </div>
-          <h4 class="text-slate-800 font-bold text-sm sm:text-base">Nenhuma recorrência cadastrada</h4>
-          <p class="text-slate-400 text-xs max-w-sm mx-auto mt-1">Cadastre aluguéis, salários, feiras semanais ou assinaturas fixas para automatizar seus lançamentos mensais.</p>
-        </div>
       </div>
 
+      <!-- Lista de Recorrências -->
+      <div id="recurringListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+
+      <!-- Estado Vazio Recorrências -->
+      <div id="emptyStateRecurring" class="bg-white p-12 rounded-2xl border border-slate-200 shadow-sm text-center flex flex-col items-center justify-center text-slate-400 hidden">
+        <i class="ph-bold ph-calendar-plus text-4xl mb-2 text-slate-300"></i>
+        <h4 class="text-sm font-semibold text-slate-700">Nenhum lançamento recorrente programado</h4>
+        <p class="text-xs text-slate-400 max-w-sm mt-1">Cadastre seus custos fixos como aluguel, internet, ou aportes semanais para efetivar com apenas 1 clique.</p>
+        <button onclick="openRecurringModal()" class="mt-4 px-4 py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700">Cadastrar Primeiro Agendamento</button>
+      </div>
     </div>
 
   </main>
 
-  <div id="transactionModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop bg-slate-900/50 transition-opacity">
-    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
-      <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-        <div class="flex items-center gap-2.5">
-          <div id="modalIconContainer" class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-            <i class="fa-solid fa-receipt text-sm"></i>
-          </div>
-          <div>
-            <h3 id="modalTitle" class="font-extrabold text-slate-800 text-base">Nova Movimentação</h3>
-            <p class="text-xs text-slate-500">Detalhes do lançamento financeiro</p>
-          </div>
-        </div>
-        <button id="btnCloseModal" class="w-8 h-8 rounded-full hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
-          <i class="fa-solid fa-xmark text-sm"></i>
+  <!-- MODAL: NOVA / EDITAR TRANSAÇÃO -->
+  <div id="modalTransaction" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="modalTransactionTitle" class="text-base font-bold text-slate-900">Nova Movimentação</h3>
+        <button onclick="closeModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <i class="ph-bold ph-x text-lg"></i>
         </button>
       </div>
 
-      <form id="transactionForm" class="p-6 space-y-4">
-        <input type="hidden" id="formTransactionId">
+      <form id="formTransaction" onsubmit="saveTransaction(event)" class="flex flex-col gap-3.5">
+        <input type="hidden" id="transId">
 
-        <!-- Type Selector -->
+        <!-- Tipo: Receita / Despesa -->
         <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tipo de Movimentação</label>
-          <div class="grid grid-cols-2 gap-3 p-1 bg-slate-100 rounded-2xl">
-            <button type="button" id="btnTypeIncome" class="type-btn py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-white text-emerald-700 shadow-xs">
-              <i class="fa-solid fa-arrow-down-left"></i> Receita
-            </button>
-            <button type="button" id="btnTypeExpense" class="type-btn py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-slate-500 hover:text-slate-800">
-              <i class="fa-solid fa-arrow-up-right"></i> Despesa
-            </button>
-          </div>
-          <input type="hidden" id="formType" value="income">
-        </div>
-
-        <!-- Amount -->
-        <div>
-          <label for="formAmount" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Valor (R$)</label>
-          <div class="relative">
-            <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">R$</span>
-            <input type="number" step="0.01" min="0.01" id="formAmount" required placeholder="0,00" class="w-full pl-11 pr-4 py-2.5 text-base font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+          <label class="block text-xs font-bold text-slate-700 mb-1">Tipo de Movimentação</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 cursor-pointer has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-500 has-[:checked]:text-emerald-700 font-semibold text-xs">
+              <input type="radio" name="transType" value="income" class="hidden" checked onchange="updateCategorySelect()">
+              <i class="ph-bold ph-arrow-up-right text-emerald-600"></i>
+              <span>Receita</span>
+            </label>
+            <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 cursor-pointer has-[:checked]:bg-rose-50 has-[:checked]:border-rose-500 has-[:checked]:text-rose-700 font-semibold text-xs">
+              <input type="radio" name="transType" value="expense" class="hidden" onchange="updateCategorySelect()">
+              <i class="ph-bold ph-arrow-down-left text-rose-600"></i>
+              <span>Despesa</span>
+            </label>
           </div>
         </div>
 
-        <!-- Description -->
+        <!-- Descrição -->
         <div>
-          <label for="formDescription" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Descrição</label>
-          <input type="text" id="formDescription" required placeholder="Ex: Salário, Feira da semana, Aluguel..." class="w-full px-4 py-2.5 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+          <label class="block text-xs font-bold text-slate-700 mb-1">Descrição</label>
+          <input type="text" id="transDesc" required placeholder="Ex: Supermercado semanal, Salário..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
         </div>
 
-        <!-- Category & Date -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- Valor e Data -->
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label for="formCategory" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Categoria</label>
-            <select id="formCategory" required class="w-full px-3 py-2.5 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
-            </select>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Valor (R$)</label>
+            <input type="number" step="0.01" min="0.01" id="transAmount" required placeholder="0,00" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
           </div>
           <div>
-            <label for="formDate" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Data</label>
-            <input type="date" id="formDate" required class="w-full px-3 py-2.5 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Data</label>
+            <input type="date" id="transDate" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
           </div>
         </div>
 
-        <!-- Submit Actions -->
-        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
-          <button type="button" id="btnCancelModal" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs sm:text-sm font-semibold transition">
-            Cancelar
-          </button>
-          <button type="submit" id="btnSubmitModal" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/30 transition flex items-center gap-2">
-            <i class="fa-solid fa-check"></i>
-            <span>Salvar Movimentação</span>
-          </button>
+        <!-- Categoria -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Categoria</label>
+          <select id="transCategory" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-brand-500">
+            <!-- Preenchido via script -->
+          </select>
+        </div>
+
+        <!-- Ações -->
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 mt-2">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-sm">Salvar Registro</button>
         </div>
       </form>
     </div>
   </div>
 
-  <div id="scheduledModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop bg-slate-900/50">
-    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden max-h-[92vh] flex flex-col">
-      <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
-            <i class="fa-solid fa-pen-ruler text-sm"></i>
-          </div>
-          <div>
-            <h3 id="modalScheduledTitle" class="font-extrabold text-slate-800 text-base">Editar / Criar Recorrência</h3>
-            <p class="text-xs text-slate-500">Configure frequência, valores e agendamento</p>
-          </div>
-        </div>
-        <button id="btnCloseScheduledModal" class="w-8 h-8 rounded-full hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
-          <i class="fa-solid fa-xmark text-sm"></i>
+  <!-- MODAL: PROGRAMAR / EDITAR RECORRÊNCIA -->
+  <div id="modalRecurring" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="modalRecurringTitle" class="text-base font-bold text-slate-900">Programar Recorrência</h3>
+        <button onclick="closeRecurringModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <i class="ph-bold ph-x text-lg"></i>
         </button>
       </div>
 
-      <form id="scheduledForm" class="p-6 space-y-4 overflow-y-auto flex-grow">
-        <input type="hidden" id="formScheduledId">
+      <form id="formRecurring" onsubmit="saveRecurring(event)" class="flex flex-col gap-3.5">
+        <input type="hidden" id="recurId">
 
-        <!-- Type Selector -->
+        <!-- Tipo -->
         <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tipo de Recorrência</label>
-          <div class="grid grid-cols-2 gap-3 p-1 bg-slate-100 rounded-2xl">
-            <button type="button" id="btnSchedTypeIncome" class="py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-white text-emerald-700 shadow-xs">
-              <i class="fa-solid fa-arrow-down-left"></i> Receita Recorrente
-            </button>
-            <button type="button" id="btnSchedTypeExpense" class="py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-slate-500 hover:text-slate-800">
-              <i class="fa-solid fa-arrow-up-right"></i> Despesa Recorrente
-            </button>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Tipo</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 cursor-pointer has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-500 has-[:checked]:text-emerald-700 font-semibold text-xs">
+              <input type="radio" name="recurType" value="income" class="hidden" checked onchange="updateRecurCategorySelect()">
+              <span>Receita</span>
+            </label>
+            <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 cursor-pointer has-[:checked]:bg-rose-50 has-[:checked]:border-rose-500 has-[:checked]:text-rose-700 font-semibold text-xs">
+              <input type="radio" name="recurType" value="expense" class="hidden" onchange="updateRecurCategorySelect()">
+              <span>Despesa</span>
+            </label>
           </div>
-          <input type="hidden" id="formSchedType" value="expense">
         </div>
 
-        <!-- Description -->
         <div>
-          <label for="formSchedDescription" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Descrição / Nome</label>
-          <input type="text" id="formSchedDescription" required placeholder="Ex: Feira de Sexta, Aluguel, Salário, Netflix..." class="w-full px-4 py-2.5 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+          <label class="block text-xs font-bold text-slate-700 mb-1">Descrição</label>
+          <input type="text" id="recurDesc" required placeholder="Ex: Aluguel, Prolabore, Abastecimento semanal..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
         </div>
 
-        <!-- Value & Frequency Selection -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label for="formSchedAmount" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Valor Unitário (R$)</label>
-            <div class="relative">
-              <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">R$</span>
-              <input type="number" step="0.01" min="0.01" id="formSchedAmount" required placeholder="0,00" class="w-full pl-11 pr-4 py-2.5 text-base font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
-            </div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Valor por Ocorrência (R$)</label>
+            <input type="number" step="0.01" min="0.01" id="recurAmount" required placeholder="0,00" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
           </div>
           <div>
-            <label for="formSchedFrequency" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Frequência</label>
-            <select id="formSchedFrequency" required class="w-full px-3 py-2.5 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition font-semibold">
-              <option value="weekly">Semanal (Dia da Semana)</option>
-              <option value="monthly">Mensal (Dia Fixo)</option>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Frequência</label>
+            <select id="recurFrequency" onchange="onFrequencyChange()" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none">
+              <option value="monthly">Mensal (Dia fixo)</option>
+              <option value="weekly">Semanal (Toda semana)</option>
               <option value="biweekly">Quinzenal</option>
               <option value="annual">Anual</option>
             </select>
           </div>
         </div>
 
-        <!-- Dynamic Date Config Box: Weekly vs Monthly -->
-        <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100">
-          <!-- Shown when weekly -->
-          <div id="weeklyConfigBlock">
-            <label for="formSchedWeekday" class="block text-xs font-bold text-indigo-900 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <i class="fa-solid fa-calendar-check text-indigo-600"></i>
-              Dia da Semana da Recorrência
-            </label>
-            <select id="formSchedWeekday" class="w-full px-3 py-2.5 text-sm text-slate-800 bg-white border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition font-bold">
-              <option value="5">Sexta-feira (Padrão)</option>
-              <option value="1">Segunda-feira</option>
-              <option value="2">Terça-feira</option>
-              <option value="3">Quarta-feira</option>
-              <option value="4">Quinta-feira</option>
-              <option value="6">Sábado</option>
-              <option value="0">Domingo</option>
-            </select>
-            <p class="text-[11px] text-indigo-700 mt-1.5" id="weeklyHelpText">
-              O sistema calcula automaticamente quantas sextas-feiras existem no mês ativo (ex: exatamente 4 ou 5) e suas datas reais.
-            </p>
-          </div>
-
-          <!-- Shown when monthly / biweekly / annual -->
-          <div id="monthlyConfigBlock" class="hidden">
-            <label for="formSchedDueDay" class="block text-xs font-bold text-indigo-900 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <i class="fa-solid fa-calendar-day text-indigo-600"></i>
-              Dia de Vencimento no Mês
-            </label>
-            <select id="formSchedDueDay" class="w-full px-3 py-2.5 text-sm text-slate-800 bg-white border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
-              <!-- Days 1 to 31 populated by JS -->
-            </select>
-          </div>
+        <!-- Dia do Vencimento (Mensal) -->
+        <div id="fieldDueDay">
+          <label class="block text-xs font-bold text-slate-700 mb-1">Dia do Vencimento (1 a 31)</label>
+          <input type="number" id="recurDueDay" min="1" max="31" value="5" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
         </div>
 
-        <!-- Category -->
+        <!-- Dia da Semana (Semanal) -->
+        <div id="fieldWeekday" class="hidden">
+          <label class="block text-xs font-bold text-slate-700 mb-1">Dia da Semana</label>
+          <select id="recurWeekday" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none">
+            <option value="0">Domingo</option>
+            <option value="1">Segunda-feira</option>
+            <option value="2">Terça-feira</option>
+            <option value="3">Quarta-feira</option>
+            <option value="4">Quinta-feira</option>
+            <option value="5" selected>Sexta-feira</option>
+            <option value="6">Sábado</option>
+          </select>
+          <p class="text-[11px] text-slate-400 mt-1">O FinFlow calcula o total de vezes que esse dia ocorre no mês ativo (ex: 4 ou 5 ocorrências).</p>
+        </div>
+
         <div>
-          <label for="formSchedCategory" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Categoria</label>
-          <select id="formSchedCategory" required class="w-full px-3 py-2.5 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+          <label class="block text-xs font-bold text-slate-700 mb-1">Categoria</label>
+          <select id="recurCategory" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none">
+            <!-- Preenchido via script -->
           </select>
         </div>
 
-        <!-- Submit Actions -->
-        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3 flex-shrink-0">
-          <button type="button" id="btnCancelSchedModal" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs sm:text-sm font-semibold transition">
-            Cancelar
-          </button>
-          <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/30 transition flex items-center gap-2">
-            <i class="fa-solid fa-check"></i>
-            <span id="btnSaveSchedText">Salvar Recorrência</span>
-          </button>
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 mt-2">
+          <button type="button" onclick="closeRecurringModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-sm">Salvar Regra</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Reset Data Modal -->
-  <div id="resetConfirmModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop bg-slate-900/50">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-center">
-      <div class="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-2xl mb-4">
-        <i class="fa-solid fa-triangle-exclamation"></i>
+  <!-- MODAL: CONFIGURAÇÃO SUPABASE / NUVEM -->
+  <div id="modalCloud" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="ph-bold ph-cloud text-xl text-sky-600"></i>
+          <h3 class="text-base font-bold text-slate-900">Conectar Supabase (Nuvem)</h3>
+        </div>
+        <button onclick="closeCloudModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
       </div>
-      <h3 class="font-extrabold text-slate-900 text-lg">Central de Redefinição de Dados</h3>
-      <p class="text-xs text-slate-500 mt-1 mb-6">
-        Escolha como deseja restaurar o FinFlow. O armazenamento é 100% seguro em seu navegador.
-      </p>
 
-      <div class="space-y-3">
-        <button id="btnRestoreDemoData" class="w-full py-3 px-4 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:border-emerald-300 border border-slate-200 text-slate-700 hover:text-emerald-800 font-semibold text-xs sm:text-sm flex items-center justify-between transition">
-          <div class="flex items-center gap-2.5 text-left">
-            <i class="fa-solid fa-wand-magic-sparkles text-emerald-600 text-base"></i>
-            <div>
-              <div class="font-bold">Restaurar Dados de Exemplo</div>
-              <div class="text-[11px] text-slate-400">Inclui gastos semanais (ex: 4 sextas-feiras) e contas fixas</div>
-            </div>
+      <div class="text-xs text-slate-600 space-y-2">
+        <p>Insira as credenciais do seu projeto no **Supabase** (obtidas em <em>Project Settings > API</em>):</p>
+      </div>
+
+      <form id="formCloud" onsubmit="saveCloudConfig(event)" class="flex flex-col gap-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Project URL</label>
+          <input type="url" id="cfgSupabaseUrl" required placeholder="https://xyzcompany.supabase.co" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none font-mono">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Project Anon Key (Public API Key)</label>
+          <textarea id="cfgSupabaseKey" rows="3" required placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none font-mono"></textarea>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100 mt-2">
+          <button type="button" onclick="disconnectCloud()" class="text-xs text-rose-600 font-semibold hover:underline">Desconectar Nuvem</button>
+          <div class="flex gap-2">
+            <button type="button" onclick="closeCloudModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Fechar</button>
+            <button type="submit" class="px-4 py-2 text-xs font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-lg shadow-sm">Salvar e Conectar</button>
           </div>
-          <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
-        </button>
-
-        <button id="btnWipeAllData" class="w-full py-3 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-semibold text-xs sm:text-sm flex items-center justify-between transition">
-          <div class="flex items-center gap-2.5 text-left">
-            <i class="fa-solid fa-trash-can text-rose-600 text-base"></i>
-            <div>
-              <div class="font-bold">Limpar Tudo (Começar do Zero)</div>
-              <div class="text-[11px] text-rose-400">Apaga todas as movimentações e regras cadastradas</div>
-            </div>
-          </div>
-          <i class="fa-solid fa-chevron-right text-xs text-rose-400"></i>
-        </button>
-      </div>
-
-      <div class="mt-6 pt-4 border-t border-slate-100">
-        <button id="btnCancelResetModal" class="w-full py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs sm:text-sm font-semibold transition">
-          Cancelar
-        </button>
-      </div>
+        </div>
+      </form>
     </div>
   </div>
 
-  <!-- Delete Modal -->
-  <div id="deleteConfirmModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop bg-slate-900/50">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center">
-      <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl mb-3">
-        <i class="fa-solid fa-trash-can"></i>
-      </div>
-      <h3 class="font-extrabold text-slate-900 text-base sm:text-lg" id="deleteModalTitle">Excluir Registro?</h3>
-      <p class="text-xs text-slate-500 mt-1 mb-6" id="deleteModalDesc">Esta ação removerá permanentemente o item selecionado.</p>
-      <div class="flex items-center justify-center gap-3">
-        <button id="btnCancelDelete" class="w-full py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-semibold transition">
-          Cancelar
-        </button>
-        <button id="btnConfirmDelete" class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-rose-600/30 transition">
-          Confirmar
+  <!-- MODAL: LOGIN / CADASTRO DE USUÁRIO -->
+  <div id="modalAuth" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="authModalHeading" class="text-base font-bold text-slate-900">Acessar Conta</h3>
+        <button onclick="closeAuthModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+          <i class="ph-bold ph-x text-lg"></i>
         </button>
       </div>
+
+      <!-- Visão Logado -->
+      <div id="viewUserLogged" class="hidden flex-col items-center gap-3 py-3 text-center">
+        <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">
+          <i class="ph-bold ph-user-check"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-500">Conectado como:</p>
+          <p id="currentUserEmail" class="text-sm font-bold text-slate-900 break-all"></p>
+        </div>
+        <button onclick="signOut()" class="w-full mt-2 py-2 text-xs font-bold rounded-lg bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100">Sair da Conta</button>
+      </div>
+
+      <!-- Visão Deslogado (Login / Cadastro) -->
+      <form id="formAuth" onsubmit="handleAuthSubmit(event)" class="flex flex-col gap-3">
+        <div class="flex border border-slate-200 rounded-lg p-0.5 bg-slate-100 text-xs font-semibold mb-1">
+          <button type="button" id="tabLogin" onclick="setAuthMode('login')" class="flex-1 py-1.5 rounded-md bg-white text-slate-900 shadow-sm">Entrar</button>
+          <button type="button" id="tabRegister" onclick="setAuthMode('register')" class="flex-1 py-1.5 rounded-md text-slate-600">Criar Conta</button>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">E-mail</label>
+          <input type="email" id="authEmail" required placeholder="seu@email.com" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Senha</label>
+          <input type="password" id="authPassword" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
+        </div>
+
+        <button type="submit" id="btnAuthSubmit" class="w-full mt-2 py-2 text-xs font-bold rounded-lg bg-brand-600 hover:bg-brand-700 text-white shadow-sm">Entrar</button>
+      </form>
     </div>
   </div>
 
-  <!-- Toast Feedback -->
-  <div id="toastNotification" class="fixed top-5 right-5 z-50 hidden items-center gap-3 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl transition-all duration-300">
-    <span id="toastIcon" class="text-emerald-400"><i class="fa-solid fa-circle-check"></i></span>
-    <span id="toastMessage" class="text-xs sm:text-sm font-medium">Operação realizada com sucesso!</span>
-  </div>
+  <!-- MODAL: RESET DE DADOS -->
+  <div id="modalReset" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4 text-center">
+      <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-2xl">
+        <i class="ph-bold ph-warning"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-slate-900">Gerenciador de Reset</h3>
+        <p class="text-xs text-slate-500 mt-1">Deseja limpar todos os lançamentos atuais ou preencher com dados demonstrativos?</p>
+      </div>
 
-  <!-- Footer -->
-  <footer class="mt-auto border-t border-slate-200/80 bg-white py-5 text-center text-xs text-slate-400">
-    <p>FinFlow &copy; Gerenciamento Financeiro Pessoal & Edição de Recorrência Inteligente</p>
-  </footer>
+      <div class="flex flex-col gap-2 pt-2">
+        <button onclick="restoreDemoData()" class="w-full py-2.5 px-3 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition">Carregar Dados de Demonstração</button>
+        <button onclick="clearAllData()" class="w-full py-2.5 px-3 text-xs font-bold rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition">Zerar Tudo (Limpar Dados)</button>
+        <button onclick="closeResetModal()" class="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-800">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    // Category Definitions
+    // --- CATEGORIAS PADRÃO ---
     const CATEGORIES = {
-      income: [
-        { id: 'salario', name: 'Salário & Proventos', icon: 'fa-money-bill-wave', color: '#10b981' },
-        { id: 'investimentos', name: 'Investimentos & Dividendos', icon: 'fa-arrow-trend-up', color: '#3b82f6' },
-        { id: 'freelance', name: 'Freelance & Semanal', icon: 'fa-laptop-code', color: '#8b5cf6' },
-        { id: 'reembolso', name: 'Reembolsos', icon: 'fa-rotate-left', color: '#06b6d4' },
-        { id: 'outros_rec', name: 'Outras Receitas', icon: 'fa-coins', color: '#64748b' }
-      ],
-      expense: [
-        { id: 'alimentacao', name: 'Alimentação & Feira', icon: 'fa-utensils', color: '#f97316' },
-        { id: 'moradia', name: 'Moradia & Aluguel', icon: 'fa-house', color: '#ef4444' },
-        { id: 'assinaturas', name: 'Assinaturas & Serviços', icon: 'fa-tv', color: '#ec4899' },
-        { id: 'transporte', name: 'Transporte & Combustível', icon: 'fa-car', color: '#eab308' },
-        { id: 'lazer', name: 'Lazer & Fim de Semana', icon: 'fa-umbrella-beach', color: '#06b6d4' },
-        { id: 'saude', name: 'Saúde & Farmácia', icon: 'fa-heart-pulse', color: '#14b8a6' },
-        { id: 'educacao', name: 'Educação & Cursos', icon: 'fa-graduation-cap', color: '#6366f1' },
-        { id: 'compras', name: 'Compras & Vestuário', icon: 'fa-bag-shopping', color: '#a855f7' },
-        { id: 'outros_desp', name: 'Outras Despesas', icon: 'fa-receipt', color: '#94a3b8' }
-      ]
+      income: ['Salário', 'Serviços / Freelance', 'Investimentos', 'Vendas', 'Outros'],
+      expense: ['Moradia / Aluguel', 'Supermercado', 'Transporte / Combustível', 'Saúde', 'Educação', 'Lazer', 'Assinaturas', 'Outros']
     };
 
-    const weekdayNames = [
-      'Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira',
-      'Quinta-feira', 'Sexta-feira', 'Sábado'
-    ];
+    // --- ESTADO GLOBAL DA APLICAÇÃO ---
+    let transactions = [];
+    let recurringRules = [];
+    let currentPeriod = ''; // Ex: '2026-10'
+    let activeTab = 'dashboard';
+    let authMode = 'login';
+    let supabaseClient = null;
+    let currentUser = null;
 
-    const monthNames = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-    ];
+    let chartHistory = null;
+    let chartCategory = null;
 
-    const currencyFormatter = new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
+    // --- INICIALIZAÇÃO ---
+    window.addEventListener('DOMContentLoaded', async () => {
+      initCurrentPeriod();
+      populateCategoryDropdowns();
+      initSupabase();
+      await loadInitialData();
+      renderApp();
     });
 
-    // Realistic Demo Data with Weekly Recurrence
-    function getInitialData() {
-      const today = new Date();
-      const y = today.getFullYear();
-      const m = String(today.getMonth() + 1).padStart(2, '0');
-
-      return {
-        transactions: [
-          { id: 'tx-1', description: 'Salário Mensal Corporativo', amount: 7500.00, type: 'income', category: 'salario', date: `${y}-${m}-05`, scheduledRef: 'sch-salario' },
-          { id: 'tx-2', description: 'Aluguel do Apartamento', amount: 2200.00, type: 'expense', category: 'moradia', date: `${y}-${m}-08`, scheduledRef: 'sch-aluguel' },
-          { id: 'tx-3', description: 'Internet Fibra 600MB', amount: 139.90, type: 'expense', category: 'moradia', date: `${y}-${m}-15`, scheduledRef: 'sch-internet' }
-        ],
-        scheduled: [
-          { 
-            id: 'sch-salario', 
-            description: 'Salário Fixo Mensal', 
-            amount: 7500.00, 
-            type: 'income', 
-            category: 'salario', 
-            frequency: 'monthly', 
-            dueDay: 5, 
-            weekday: 5 
-          },
-          { 
-            id: 'sch-aluguel', 
-            description: 'Aluguel do Apartamento', 
-            amount: 2200.00, 
-            type: 'expense', 
-            category: 'moradia', 
-            frequency: 'monthly', 
-            dueDay: 8, 
-            weekday: 5 
-          },
-          { 
-            id: 'sch-feira', 
-            description: 'Feira & Mercado de Sexta', 
-            amount: 180.00, 
-            type: 'expense', 
-            category: 'alimentacao', 
-            frequency: 'weekly', 
-            weekday: 5, // 5 = Friday
-            dueDay: 5 
-          },
-          { 
-            id: 'sch-freela-semanal', 
-            description: 'Recebimento Freelance Semanal', 
-            amount: 450.00, 
-            type: 'income', 
-            category: 'freelance', 
-            frequency: 'weekly', 
-            weekday: 5, // 5 = Friday
-            dueDay: 5 
-          },
-          { 
-            id: 'sch-internet', 
-            description: 'Internet Fibra 600MB', 
-            amount: 139.90, 
-            type: 'expense', 
-            category: 'moradia', 
-            frequency: 'monthly', 
-            dueDay: 15, 
-            weekday: 5 
-          }
-        ]
-      };
+    function initCurrentPeriod() {
+      const now = new Date();
+      const yr = now.getFullYear();
+      const mo = String(now.getMonth() + 1).padStart(2, '0');
+      currentPeriod = `${yr}-${mo}`;
+      document.getElementById('monthSelector').value = currentPeriod;
     }
 
-    // App State
-    let transactions = [];
-    let scheduledItems = [];
-    const now = new Date();
-    let currentSelectedYear = now.getFullYear();
-    let currentSelectedMonth = now.getMonth() + 1; // 1 to 12
-    let isAllMonthsView = false;
-    let currentFilterType = 'all';
-    let currentCategoryFilter = 'all';
-    let searchQuery = '';
+    // --- CONFIGURAÇÃO SUPABASE ---
+    function initSupabase() {
+      const storedUrl = localStorage.getItem('finflow_supa_url');
+      const storedKey = localStorage.getItem('finflow_supa_key');
 
-    let deleteTarget = { type: null, id: null };
-    let comparisonChartInstance = null;
-    let donutChartInstance = null;
+      if (storedUrl && storedKey && window.supabase) {
+        try {
+          supabaseClient = window.supabase.createClient(storedUrl, storedKey);
+          document.getElementById('badgeStorageMode').textContent = 'Cloud';
+          document.getElementById('badgeStorageMode').className = 'text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200';
+          document.getElementById('labelCloudStatus').textContent = 'Nuvem Conectada';
+          document.getElementById('syncBar').classList.add('hidden');
 
-    /**
-     * Calculates the exact calendar dates for a recurring item in a given month.
-     * For weekly recurrences, this accounts for months having 4 or 5 occurrences of that weekday.
-     */
-    function getExactDatesForSchedule(schedItem, year, month) {
-      const dates = [];
-      const totalDays = new Date(year, month, 0).getDate();
-
-      if (schedItem.frequency === 'weekly') {
-        const targetWeekday = parseInt(schedItem.weekday, 10); // 0 (Sun) to 6 (Sat)
-        for (let day = 1; day <= totalDays; day++) {
-          const dateObj = new Date(year, month - 1, day);
-          if (dateObj.getDay() === targetWeekday) {
-            const yStr = year;
-            const mStr = String(month).padStart(2, '0');
-            const dStr = String(day).padStart(2, '0');
-            dates.push(`${yStr}-${mStr}-${dStr}`);
-          }
+          // Ouvinte de Auth
+          supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            currentUser = session ? session.user : null;
+            updateAuthHeader();
+            if (currentUser) {
+              await fetchCloudData();
+              subscribeRealtime();
+            } else {
+              loadLocalData();
+            }
+            renderApp();
+          });
+        } catch (e) {
+          console.error("Falha ao inicializar Supabase:", e);
         }
       } else {
-        // Monthly, biweekly or annual default due day
-        const clampedDay = Math.min(schedItem.dueDay || 1, totalDays);
-        const yStr = year;
-        const mStr = String(month).padStart(2, '0');
-        const dStr = String(clampedDay).padStart(2, '0');
-        dates.push(`${yStr}-${mStr}-${dStr}`);
+        document.getElementById('badgeStorageMode').textContent = 'Local';
+        document.getElementById('labelCloudStatus').textContent = 'Conectar Nuvem';
+        document.getElementById('syncBar').classList.remove('hidden');
+      }
+    }
 
-        // If biweekly, calculate secondary 15-day occurrence
-        if (schedItem.frequency === 'biweekly') {
-          const secondDay = clampedDay + 14;
-          if (secondDay <= totalDays) {
-            dates.push(`${yStr}-${mStr}-${String(secondDay).padStart(2, '0')}`);
-          }
+    // --- CARREGAMENTO DE DADOS (LOCAL vs NUVEM) ---
+    async function loadInitialData() {
+      if (supabaseClient) {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+          currentUser = session.user;
+          updateAuthHeader();
+          await fetchCloudData();
+          return;
         }
       }
+      loadLocalData();
+    }
 
+    function loadLocalData() {
+      const storedTx = localStorage.getItem('finflow_transactions');
+      const storedRec = localStorage.getItem('finflow_recurring');
+      transactions = storedTx ? JSON.parse(storedTx) : [];
+      recurringRules = storedRec ? JSON.parse(storedRec) : [];
+
+      if (transactions.length === 0 && recurringRules.length === 0) {
+        loadDemoPresets();
+      }
+    }
+
+    async function fetchCloudData() {
+      if (!supabaseClient || !currentUser) return;
+      try {
+        const { data: txData } = await supabaseClient
+          .from('transactions')
+          .select('*')
+          .order('date', { ascending: false });
+
+        const { data: recData } = await supabaseClient
+          .from('recurring_rules')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        transactions = txData || [];
+        recurringRules = recData || [];
+        renderApp();
+      } catch (err) {
+        console.error('Erro ao buscar dados na nuvem:', err);
+      }
+    }
+
+    function subscribeRealtime() {
+      if (!supabaseClient || !currentUser) return;
+      supabaseClient
+        .channel('realtime_finflow')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => fetchCloudData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'recurring_rules' }, () => fetchCloudData())
+        .subscribe();
+    }
+
+    function saveLocal() {
+      localStorage.setItem('finflow_transactions', JSON.stringify(transactions));
+      localStorage.setItem('finflow_recurring', JSON.stringify(recurringRules));
+    }
+
+    // --- RECORRÊNCIA E CÁLCULO DE DIAS DA SEMANA NO MÊS ATUAL ---
+    function getWeekdayDatesInMonth(year, month, weekday) {
+      const dates = [];
+      const date = new Date(year, month - 1, 1);
+      while (date.getMonth() === month - 1) {
+        if (date.getDay() === weekday) {
+          const yr = date.getFullYear();
+          const mo = String(date.getMonth() + 1).padStart(2, '0');
+          const dy = String(date.getDate()).padStart(2, '0');
+          dates.push(`${yr}-${mo}-${dy}`);
+        }
+        date.setDate(date.getDate() + 1);
+      }
       return dates;
     }
 
-    /**
-     * Checks which specific dates have already been posted to the transactions log.
-     */
-    function getScheduleStatusForMonth(schedItem, year, month) {
-      const targetDates = getExactDatesForSchedule(schedItem, year, month);
-      const postedDates = [];
-
-      targetDates.forEach(dateStr => {
-        const isPosted = transactions.some(t => {
-          return t.date === dateStr && (t.scheduledRef === schedItem.id || t.description === schedItem.description);
-        });
-        if (isPosted) {
-          postedDates.push(dateStr);
-        }
-      });
-
-      const pendingDates = targetDates.filter(d => !postedDates.includes(d));
-
-      return {
-        targetDates,
-        postedDates,
-        pendingDates,
-        isFullyPosted: pendingDates.length === 0 && targetDates.length > 0,
-        totalOccurrences: targetDates.length,
-        postedCount: postedDates.length
-      };
-    }
-
-    function loadData() {
-      const storedTx = localStorage.getItem('finflow_transactions_v3');
-      const storedSch = localStorage.getItem('finflow_scheduled_v3');
-
-      if (storedTx && storedSch) {
-        try {
-          transactions = JSON.parse(storedTx);
-          scheduledItems = JSON.parse(storedSch);
-        } catch (e) {
-          restoreDemoDefaults();
-        }
-      } else {
-        restoreDemoDefaults();
+    function getRecurrenceDatesForMonth(rule, year, month) {
+      if (rule.frequency === 'weekly') {
+        return getWeekdayDatesInMonth(year, month, parseInt(rule.weekday));
       }
+      if (rule.frequency === 'biweekly') {
+        const d1 = String(rule.due_day || 5).padStart(2, '0');
+        const d2 = String(Math.min(30, (rule.due_day || 5) + 15)).padStart(2, '0');
+        const mo = String(month).padStart(2, '0');
+        return [`${year}-${mo}-${d1}`, `${year}-${mo}-${d2}`];
+      }
+      // Mensal ou Anual
+      const d = String(rule.due_day || 5).padStart(2, '0');
+      const mo = String(month).padStart(2, '0');
+      return [`${year}-${mo}-${d}`];
     }
 
-    function saveData() {
-      localStorage.setItem('finflow_transactions_v3', JSON.stringify(transactions));
-      localStorage.setItem('finflow_scheduled_v3', JSON.stringify(scheduledItems));
-    }
-
-    function restoreDemoDefaults() {
-      const demo = getInitialData();
-      transactions = demo.transactions;
-      scheduledItems = demo.scheduled;
-      saveData();
-    }
-
-    function wipeAllData() {
-      transactions = [];
-      scheduledItems = [];
-      saveData();
-    }
-
-    function showToast(message, isSuccess = true) {
-      const toast = document.getElementById('toastNotification');
-      const toastMsg = document.getElementById('toastMessage');
-      const toastIcon = document.getElementById('toastIcon');
-
-      toastMsg.textContent = message;
-      toastIcon.innerHTML = isSuccess 
-        ? '<i class="fa-solid fa-circle-check text-emerald-400"></i>' 
-        : '<i class="fa-solid fa-triangle-exclamation text-rose-400"></i>';
-
-      toast.classList.remove('hidden');
-      toast.classList.add('flex');
-
-      setTimeout(() => {
-        toast.classList.add('hidden');
-        toast.classList.remove('flex');
-      }, 3000);
-    }
-
-    function getCategoryMeta(categoryId, type) {
-      const list = type === 'income' ? CATEGORIES.income : CATEGORIES.expense;
-      let found = list.find(c => c.id === categoryId);
-      if (found) return found;
-
-      const all = [...CATEGORIES.income, ...CATEGORIES.expense];
-      return all.find(c => c.id === categoryId) || { name: 'Diversos', icon: 'fa-tags', color: '#64748b' };
-    }
-
-    function getPeriodTransactions() {
-      return transactions.filter(t => {
-        if (isAllMonthsView) return true;
-        const parts = t.date.split('-');
-        const tYear = parseInt(parts[0], 10);
-        const tMonth = parseInt(parts[1], 10);
-        return tYear === currentSelectedYear && tMonth === currentSelectedMonth;
-      });
+    // --- RENDERIZAÇÃO PRINCIPAL ---
+    function renderApp() {
+      renderKPIs();
+      renderTransactionHistory();
+      renderRecurringList();
+      renderCharts();
     }
 
     function getFilteredTransactions() {
-      return transactions.filter(t => {
-        if (!isAllMonthsView) {
-          const parts = t.date.split('-');
-          const tYear = parseInt(parts[0], 10);
-          const tMonth = parseInt(parts[1], 10);
-          if (tYear !== currentSelectedYear || tMonth !== currentSelectedMonth) {
-            return false;
-          }
-        }
-
-        if (currentFilterType !== 'all' && t.type !== currentFilterType) {
-          return false;
-        }
-
-        if (currentCategoryFilter !== 'all' && t.category !== currentCategoryFilter) {
-          return false;
-        }
-
-        if (searchQuery.trim() !== '') {
-          const q = searchQuery.toLowerCase();
-          const descMatch = t.description.toLowerCase().includes(q);
-          const cat = getCategoryMeta(t.category, t.type);
-          const catMatch = cat ? cat.name.toLowerCase().includes(q) : false;
-          if (!descMatch && !catMatch) return false;
-        }
-
-        return true;
-      });
-    }
-
-    function updatePeriodLabel() {
-      const label = document.getElementById('currentPeriodLabel');
-      const subtitle = document.getElementById('periodSubtitle');
-      const picker = document.getElementById('monthPickerInput');
-
-      if (isAllMonthsView) {
-        label.textContent = 'Histórico Geral Completo';
-        subtitle.textContent = 'Todo o Período';
-        picker.value = '';
-      } else {
-        const monthName = monthNames[currentSelectedMonth - 1];
-        label.textContent = `${monthName} de ${currentSelectedYear}`;
-        subtitle.textContent = 'Visualização do Mês';
-        picker.value = `${currentSelectedYear}-${String(currentSelectedMonth).padStart(2, '0')}`;
+      let filtered = [...transactions];
+      if (currentPeriod) {
+        filtered = filtered.filter(t => t.date && t.date.startsWith(currentPeriod));
       }
+
+      const q = document.getElementById('searchFilter').value.toLowerCase().trim();
+      if (q) {
+        filtered = filtered.filter(t => t.description.toLowerCase().includes(q) || t.category.toLowerCase().includes(q));
+      }
+
+      const type = document.getElementById('typeFilter').value;
+      if (type !== 'all') {
+        filtered = filtered.filter(t => t.type === type);
+      }
+
+      const cat = document.getElementById('categoryFilter').value;
+      if (cat !== 'all') {
+        filtered = filtered.filter(t => t.category === cat);
+      }
+
+      return filtered;
     }
 
-    function updateKPIs() {
-      const periodList = getPeriodTransactions();
-      let periodIncome = 0;
-      let countIncome = 0;
-      let periodExpense = 0;
-      let countExpense = 0;
-
-      periodList.forEach(t => {
-        const amt = parseFloat(t.amount) || 0;
-        if (t.type === 'income') {
-          periodIncome += amt;
-          countIncome++;
-        } else {
-          periodExpense += amt;
-          countExpense++;
-        }
-      });
-
-      const periodBalance = periodIncome - periodExpense;
-
-      // Consolidated all time
-      let allTimeIncome = 0;
-      let allTimeExpense = 0;
-      transactions.forEach(t => {
-        const amt = parseFloat(t.amount) || 0;
-        if (t.type === 'income') allTimeIncome += amt;
-        else allTimeExpense += amt;
-      });
-      const allTimeBalance = allTimeIncome - allTimeExpense;
-
-      // Scheduled projections dynamically calculated using exact calendar occurrences
-      let scheduledExpTotal = 0;
-      let scheduledIncTotal = 0;
-      let pendingOccurrencesTotal = 0;
-
-      scheduledItems.forEach(s => {
-        const stat = getScheduleStatusForMonth(s, currentSelectedYear, currentSelectedMonth);
-        const itemMonthTotal = (parseFloat(s.amount) || 0) * stat.totalOccurrences;
-
-        if (s.type === 'expense') {
-          scheduledExpTotal += itemMonthTotal;
-        } else {
-          scheduledIncTotal += itemMonthTotal;
-        }
-
-        pendingOccurrencesTotal += stat.pendingDates.length;
-      });
-
-      // Update KPI DOM
-      document.getElementById('kpiIncome').textContent = currencyFormatter.format(periodIncome);
-      document.getElementById('kpiIncomeCount').textContent = `${countIncome} ${countIncome === 1 ? 'entrada realizada' : 'entradas realizadas'}`;
-      document.getElementById('kpiAllTimeIncome').textContent = currencyFormatter.format(allTimeIncome);
-
-      document.getElementById('kpiExpense').textContent = currencyFormatter.format(periodExpense);
-      document.getElementById('kpiExpenseCount').textContent = `${countExpense} ${countExpense === 1 ? 'saída realizada' : 'saídas realizadas'}`;
-      document.getElementById('kpiAllTimeExpense').textContent = currencyFormatter.format(allTimeExpense);
-
-      const balEl = document.getElementById('kpiBalance');
-      const balStatus = document.getElementById('kpiBalanceStatus');
-      const balBar = document.getElementById('kpiBalanceBar');
-      const balIconBox = document.getElementById('kpiBalanceIconBox');
-
-      balEl.textContent = currencyFormatter.format(periodBalance);
-      document.getElementById('kpiAllTimeBalance').textContent = currencyFormatter.format(allTimeBalance);
-
-      if (periodBalance > 0) {
-        balEl.className = 'text-2xl font-extrabold text-emerald-600 tracking-tight';
-        balStatus.innerHTML = '<span class="text-emerald-600 font-semibold"><i class="fa-solid fa-arrow-trend-up"></i> Superávit no período</span>';
-        balBar.className = 'absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600';
-        balIconBox.className = 'w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold';
-      } else if (periodBalance < 0) {
-        balEl.className = 'text-2xl font-extrabold text-rose-500 tracking-tight';
-        balStatus.innerHTML = '<span class="text-rose-500 font-semibold"><i class="fa-solid fa-arrow-trend-down"></i> Déficit no período</span>';
-        balBar.className = 'absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 to-rose-600';
-        balIconBox.className = 'w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 font-bold';
+    function renderKPIs() {
+      // Saldo Geral Consolidado (Tudo)
+      const generalBalance = transactions.reduce((acc, t) => acc + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0);
+      document.getElementById('cardTotalBalance').textContent = formatCurrency(generalBalance);
+      
+      const balStatus = document.getElementById('cardBalanceStatus');
+      if (generalBalance > 0) {
+        balStatus.textContent = 'Saldo positivo consolidado';
+        balStatus.className = 'text-xs text-emerald-600 font-semibold mt-1';
+      } else if (generalBalance < 0) {
+        balStatus.textContent = 'Saldo devedor consolidado';
+        balStatus.className = 'text-xs text-rose-600 font-semibold mt-1';
       } else {
-        balEl.className = 'text-2xl font-extrabold text-slate-800 tracking-tight';
         balStatus.textContent = 'Saldo neutro / zerado';
-        balBar.className = 'absolute bottom-0 left-0 right-0 h-1 bg-slate-300';
-        balIconBox.className = 'w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 font-bold';
+        balStatus.className = 'text-xs text-slate-500 mt-1';
       }
 
-      document.getElementById('kpiScheduledExpense').textContent = currencyFormatter.format(scheduledExpTotal);
-      document.getElementById('kpiScheduledIncome').textContent = currencyFormatter.format(scheduledIncTotal);
-      document.getElementById('kpiScheduledPendingInfo').textContent = `${pendingOccurrencesTotal} lançamentos pendentes no mês`;
-      document.getElementById('badgeScheduledPending').textContent = pendingOccurrencesTotal;
+      // KPIs do Mês
+      const monthTx = currentPeriod ? transactions.filter(t => t.date.startsWith(currentPeriod)) : transactions;
+      const monthIncome = monthTx.filter(t => t.type === 'income').reduce((a, b) => a + Number(b.amount), 0);
+      const monthExpense = monthTx.filter(t => t.type === 'expense').reduce((a, b) => a + Number(b.amount), 0);
+
+      document.getElementById('cardTotalIncome').textContent = formatCurrency(monthIncome);
+      document.getElementById('cardIncomeCount').textContent = `${monthTx.filter(t => t.type === 'income').length} lançamentos`;
+
+      document.getElementById('cardTotalExpense').textContent = formatCurrency(monthExpense);
+      document.getElementById('cardExpenseCount').textContent = `${monthTx.filter(t => t.type === 'expense').length} lançamentos`;
+
+      // Previsões Programadas Pendentes no Mês
+      let pendingExp = 0;
+      let pendingInc = 0;
+      let pendingCount = 0;
+
+      if (currentPeriod) {
+        const [y, m] = currentPeriod.split('-').map(Number);
+        recurringRules.forEach(rule => {
+          const expectedDates = getRecurrenceDatesForMonth(rule, y, m);
+          expectedDates.forEach(expectedDate => {
+            const alreadyPaid = transactions.some(t => t.recurring_id === rule.id && t.date === expectedDate);
+            if (!alreadyPaid) {
+              pendingCount++;
+              if (rule.type === 'expense') pendingExp += Number(rule.amount);
+              else pendingInc += Number(rule.amount);
+            }
+          });
+        });
+      }
+
+      document.getElementById('cardPendingExpense').textContent = formatCurrency(pendingExp);
+      document.getElementById('cardPendingIncome').textContent = formatCurrency(pendingInc);
+      document.getElementById('cardPendingText').textContent = `${pendingCount} lançamento(s) pendente(s)`;
+
+      const badge = document.getElementById('badgePendingCount');
+      if (pendingCount > 0) {
+        badge.textContent = pendingCount;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
     }
 
-    function updateCharts() {
-      // 1. Donut Chart - Expenses
-      const expensesInPeriod = getPeriodTransactions().filter(t => t.type === 'expense');
-      const catTotals = {};
+    function renderTransactionHistory() {
+      const list = getFilteredTransactions();
+      const tBody = document.getElementById('transactionTableBody');
+      const mList = document.getElementById('transactionMobileList');
+      const empty = document.getElementById('emptyStateTransactions');
+      document.getElementById('countTransactionsBadge').textContent = list.length;
 
-      expensesInPeriod.forEach(t => {
-        catTotals[t.category] = (catTotals[t.category] || 0) + parseFloat(t.amount);
+      tBody.innerHTML = '';
+      mList.innerHTML = '';
+
+      if (list.length === 0) {
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      list.forEach(item => {
+        const isIncome = item.type === 'income';
+        const formattedVal = `${isIncome ? '+' : '-'} ${formatCurrency(item.amount)}`;
+        const valColor = isIncome ? 'text-emerald-600' : 'text-rose-600';
+        const badgeBg = isIncome ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700';
+
+        // Linha Desktop
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+        tr.innerHTML = `
+          <td class="py-3 px-4">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeBg}">
+              <i class="ph-bold ${isIncome ? 'ph-arrow-up-right' : 'ph-arrow-down-left'}"></i>
+              ${isIncome ? 'Receita' : 'Despesa'}
+            </span>
+          </td>
+          <td class="py-3 px-4 font-semibold text-slate-800">${escapeHtml(item.description)}</td>
+          <td class="py-3 px-4 text-slate-500">${escapeHtml(item.category)}</td>
+          <td class="py-3 px-4 text-slate-500">${formatDateDisplay(item.date)}</td>
+          <td class="py-3 px-4 text-right font-bold ${valColor}">${formattedVal}</td>
+          <td class="py-3 px-4 text-center">
+            <div class="flex items-center justify-center gap-1.5">
+              <button onclick="editTransaction('${item.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-brand-50" title="Editar">
+                <i class="ph-bold ph-pencil-simple text-sm"></i>
+              </button>
+              <button onclick="deleteTransaction('${item.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50" title="Excluir">
+                <i class="ph-bold ph-trash text-sm"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tBody.appendChild(tr);
+
+        // Card Mobile
+        const card = document.createElement('div');
+        card.className = 'p-3 flex items-center justify-between gap-3';
+        card.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm ${badgeBg}">
+              <i class="ph-bold ${isIncome ? 'ph-arrow-up-right' : 'ph-arrow-down-left'}"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-slate-800 leading-tight">${escapeHtml(item.description)}</p>
+              <span class="text-[10px] text-slate-400">${escapeHtml(item.category)} • ${formatDateDisplay(item.date)}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold ${valColor}">${formattedVal}</span>
+            <button onclick="deleteTransaction('${item.id}')" class="text-slate-400 hover:text-rose-600 p-1">
+              <i class="ph-bold ph-trash text-sm"></i>
+            </button>
+          </div>
+        `;
+        mList.appendChild(card);
       });
+    }
 
-      const catLabels = [];
-      const catData = [];
-      const catColors = [];
+    function renderRecurringList() {
+      const container = document.getElementById('recurringListContainer');
+      const empty = document.getElementById('emptyStateRecurring');
+      container.innerHTML = '';
 
-      Object.keys(catTotals).forEach(catId => {
-        const meta = getCategoryMeta(catId, 'expense');
-        catLabels.push(meta.name);
-        catData.push(catTotals[catId]);
-        catColors.push(meta.color);
+      if (recurringRules.length === 0) {
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      const [y, m] = currentPeriod ? currentPeriod.split('-').map(Number) : [new Date().getFullYear(), new Date().getMonth() + 1];
+
+      recurringRules.forEach(rule => {
+        const isIncome = rule.type === 'income';
+        const expectedDates = getRecurrenceDatesForMonth(rule, y, m);
+        
+        let fulfilledCount = 0;
+        const occurrencesHtml = expectedDates.map(dateStr => {
+          const already = transactions.some(t => t.recurring_id === rule.id && t.date === dateStr);
+          if (already) fulfilledCount++;
+          const dayNum = dateStr.split('-')[2];
+          return `
+            <button onclick="${already ? '' : `fulfillSingleOccurrence('${rule.id}', '${dateStr}')`}" 
+                    class="px-2 py-1 rounded text-[11px] font-semibold border transition ${already ? 'bg-emerald-50 border-emerald-200 text-emerald-700 cursor-default' : 'bg-white border-slate-200 hover:bg-brand-50 hover:border-brand-500 text-slate-700'}">
+              ${already ? '✓' : '+'} Dia ${dayNum}
+            </button>
+          `;
+        }).join('');
+
+        const totalExpected = expectedDates.length;
+        const allDone = fulfilledCount >= totalExpected;
+
+        const card = document.createElement('div');
+        card.className = 'bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between gap-4';
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isIncome ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'} uppercase">
+                ${isIncome ? 'Receita' : 'Despesa'} • ${translateFreq(rule.frequency)}
+              </span>
+              <div class="flex items-center gap-1">
+                <button onclick="editRecurring('${rule.id}')" class="p-1 text-slate-400 hover:text-brand-600 rounded" title="Editar">
+                  <i class="ph-bold ph-pencil-simple text-sm"></i>
+                </button>
+                <button onclick="deleteRecurring('${rule.id}')" class="p-1 text-slate-400 hover:text-rose-600 rounded" title="Excluir">
+                  <i class="ph-bold ph-trash text-sm"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-2">
+              <h4 class="text-sm font-bold text-slate-900">${escapeHtml(rule.description)}</h4>
+              <p class="text-xs text-slate-500 mt-0.5">${escapeHtml(rule.category)}</p>
+            </div>
+
+            <div class="mt-3 flex items-baseline justify-between border-b border-slate-100 pb-2">
+              <span class="text-xs text-slate-400">Valor Unitário:</span>
+              <span class="text-base font-black ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">${formatCurrency(rule.amount)}</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between text-xs mb-1.5">
+              <span class="font-semibold text-slate-700">Ocorrências em ${currentPeriod}:</span>
+              <span class="text-[11px] font-bold ${allDone ? 'text-emerald-600' : 'text-amber-600'}">${fulfilledCount} de ${totalExpected} lançadas</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              ${occurrencesHtml}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
       });
+    }
 
-      const donutCanvas = document.getElementById('categoryDonutChart');
-      const emptyMsg = document.getElementById('emptyCategoryChartMsg');
+    function renderCharts() {
+      // 1. Gráfico Histórico (Últimos 6 meses)
+      const ctxH = document.getElementById('chartHistory').getContext('2d');
+      const monthsBack = 6;
+      const labels = [];
+      const dataInc = [];
+      const dataExp = [];
 
-      if (catData.length === 0) {
-        donutCanvas.classList.add('opacity-0');
-        emptyMsg.classList.remove('hidden');
-      } else {
-        donutCanvas.classList.remove('opacity-0');
-        emptyMsg.classList.add('hidden');
+      const now = new Date();
+      for (let i = monthsBack - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const yr = d.getFullYear();
+        const mo = String(d.getMonth() + 1).padStart(2, '0');
+        const key = `${yr}-${mo}`;
+        labels.push(d.toLocaleString('pt-BR', { month: 'short' }) + '/' + String(yr).slice(-2));
+
+        const monthTxs = transactions.filter(t => t.date && t.date.startsWith(key));
+        dataInc.push(monthTxs.filter(t => t.type === 'income').reduce((a, b) => a + Number(b.amount), 0));
+        dataExp.push(monthTxs.filter(t => t.type === 'expense').reduce((a, b) => a + Number(b.amount), 0));
       }
 
-      if (donutChartInstance) donutChartInstance.destroy();
-
-      donutChartInstance = new Chart(donutCanvas, {
-        type: 'doughnut',
-        data: {
-          labels: catLabels,
-          datasets: [{
-            data: catData,
-            backgroundColor: catColors,
-            borderWidth: 2,
-            borderColor: '#ffffff',
-            hoverOffset: 4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: {
-                boxWidth: 10,
-                font: { size: 11, family: "'Plus Jakarta Sans', sans-serif" },
-                padding: 10
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(ctx) {
-                  return ` ${ctx.label}: ${currencyFormatter.format(ctx.raw || 0)}`;
-                }
-              }
-            }
-          },
-          cutout: '68%'
-        }
-      });
-
-      // 2. Bar Chart - Last 6 Months
-      const monthsHistory = [];
-      const refDate = new Date();
-      for (let i = 5; i >= 0; i--) {
-        const d = new Date(refDate.getFullYear(), refDate.getMonth() - i, 1);
-        monthsHistory.push({
-          year: d.getFullYear(),
-          month: d.getMonth() + 1,
-          label: monthNames[d.getMonth()].substring(0, 3)
-        });
-      }
-
-      const incData = [];
-      const expData = [];
-
-      monthsHistory.forEach(slot => {
-        let inc = 0;
-        let exp = 0;
-        transactions.forEach(t => {
-          const parts = t.date.split('-');
-          const y = parseInt(parts[0], 10);
-          const m = parseInt(parts[1], 10);
-          if (y === slot.year && m === slot.month) {
-            if (t.type === 'income') inc += parseFloat(t.amount);
-            else exp += parseFloat(t.amount);
-          }
-        });
-        incData.push(inc);
-        expData.push(exp);
-      });
-
-      const barCanvas = document.getElementById('monthlyComparisonChart');
-      if (comparisonChartInstance) comparisonChartInstance.destroy();
-
-      comparisonChartInstance = new Chart(barCanvas, {
+      if (chartHistory) chartHistory.destroy();
+      chartHistory = new Chart(ctxH, {
         type: 'bar',
         data: {
-          labels: monthsHistory.map(m => m.label),
+          labels,
           datasets: [
-            {
-              label: 'Receitas',
-              data: incData,
-              backgroundColor: '#10b981',
-              borderRadius: 6,
-            },
-            {
-              label: 'Despesas',
-              data: expData,
-              backgroundColor: '#f43f5e',
-              borderRadius: 6,
-            }
+            { label: 'Receitas', data: dataInc, backgroundColor: '#10b981', borderRadius: 4 },
+            { label: 'Despesas', data: dataExp, backgroundColor: '#f43f5e', borderRadius: 4 }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'top',
-              align: 'end',
-              labels: {
-                boxWidth: 10,
-                font: { size: 11, family: "'Plus Jakarta Sans', sans-serif" }
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(ctx) {
-                  return ` ${ctx.dataset.label}: ${currencyFormatter.format(ctx.raw)}`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: { grid: { display: false } },
-            y: {
-              beginAtZero: true,
-              ticks: {
-                callback: function(v) {
-                  if (v >= 1000) return 'R$ ' + (v / 1000).toFixed(0) + 'k';
-                  return 'R$ ' + v;
-                },
-                font: { size: 10 }
-              },
-              grid: { color: '#f1f5f9' }
-            }
-          }
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+          scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
         }
       });
-    }
 
-    function renderTransactions() {
-      const list = getFilteredTransactions();
-      list.sort((a, b) => new Date(b.date) - new Date(a.date));
+      // 2. Gráfico por Categoria (Período ativo)
+      const ctxC = document.getElementById('chartCategory').getContext('2d');
+      const activeExpenses = currentPeriod ? transactions.filter(t => t.type === 'expense' && t.date.startsWith(currentPeriod)) : transactions.filter(t => t.type === 'expense');
+      const catMap = {};
+      activeExpenses.forEach(t => { catMap[t.category] = (catMap[t.category] || 0) + Number(t.amount); });
 
-      const tableBody = document.getElementById('transactionsTableBody');
-      const mobileList = document.getElementById('transactionsMobileList');
-      const emptyState = document.getElementById('emptyStateContainer');
-      const summaryCount = document.getElementById('transactionsSummaryCount');
+      const catLabels = Object.keys(catMap);
+      const catValues = Object.values(catMap);
+      const noDataAlert = document.getElementById('noChartCategory');
 
-      tableBody.innerHTML = '';
-      mobileList.innerHTML = '';
-      summaryCount.textContent = `Exibindo ${list.length} ${list.length === 1 ? 'movimentação' : 'movimentações'}`;
+      if (chartCategory) chartCategory.destroy();
 
-      if (list.length === 0) {
-        emptyState.classList.remove('hidden');
-        return;
-      }
-      emptyState.classList.add('hidden');
-
-      list.forEach(tx => {
-        const isIncome = tx.type === 'income';
-        const meta = getCategoryMeta(tx.category, tx.type);
-        const amountFormatted = (isIncome ? '+ ' : '- ') + currencyFormatter.format(tx.amount);
-        
-        const dateParts = tx.date.split('-');
-        const dateFormatted = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-
-        // Desktop Row
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50/70 transition-colors group';
-        tr.innerHTML = `
-          <td class="px-6 py-4 font-semibold text-slate-800 flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs flex-shrink-0" style="background-color: ${meta.color}15; color: ${meta.color}">
-              <i class="fa-solid ${meta.icon}"></i>
-            </div>
-            <div>
-              <span class="block">${tx.description}</span>
-              ${tx.scheduledRef ? '<span class="inline-block text-[10px] text-indigo-600 bg-indigo-50 px-1.5 rounded font-bold"><i class="fa-solid fa-repeat text-[9px] mr-0.5"></i> Recorrente</span>' : ''}
-            </div>
-          </td>
-          <td class="px-6 py-4">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-              <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${meta.color}"></span>
-              ${meta.name}
-            </span>
-          </td>
-          <td class="px-6 py-4 text-xs font-medium text-slate-600">
-            ${dateFormatted}
-          </td>
-          <td class="px-6 py-4 text-right font-bold text-sm ${isIncome ? 'text-emerald-600' : 'text-rose-500'}">
-            ${amountFormatted}
-          </td>
-          <td class="px-6 py-4 text-center">
-            <div class="flex items-center justify-center gap-1.5">
-              <button onclick="openEditModal('${tx.id}')" title="Editar" class="p-1.5 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-800 transition">
-                <i class="fa-solid fa-pen-to-square text-xs"></i>
-              </button>
-              <button onclick="promptDelete('transaction', '${tx.id}')" title="Excluir" class="p-1.5 rounded-lg hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition">
-                <i class="fa-solid fa-trash-can text-xs"></i>
-              </button>
-            </div>
-          </td>
-        `;
-        tableBody.appendChild(tr);
-
-        // Mobile Card
-        const card = document.createElement('div');
-        card.className = 'p-3.5 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between';
-        card.innerHTML = `
-          <div class="flex items-center gap-3 min-w-0 pr-2">
-            <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-sm" style="background-color: ${meta.color}15; color: ${meta.color}">
-              <i class="fa-solid ${meta.icon}"></i>
-            </div>
-            <div class="truncate">
-              <p class="font-bold text-sm text-slate-800 truncate">${tx.description}</p>
-              <div class="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
-                <span>${meta.name}</span>
-                <span>•</span>
-                <span>${dateFormatted}</span>
-              </div>
-            </div>
-          </div>
-          <div class="text-right flex-shrink-0">
-            <p class="font-extrabold text-sm ${isIncome ? 'text-emerald-600' : 'text-rose-500'}">${amountFormatted}</p>
-            <div class="flex items-center justify-end gap-1.5 mt-1">
-              <button onclick="openEditModal('${tx.id}')" class="p-1 text-slate-400 hover:text-slate-700">
-                <i class="fa-solid fa-pen-to-square text-xs"></i>
-              </button>
-              <button onclick="promptDelete('transaction', '${tx.id}')" class="p-1 text-slate-400 hover:text-rose-600">
-                <i class="fa-solid fa-trash-can text-xs"></i>
-              </button>
-            </div>
-          </div>
-        `;
-        mobileList.appendChild(card);
-      });
-    }
-
-    function renderScheduled() {
-      const tableBody = document.getElementById('scheduledTableBody');
-      const mobileList = document.getElementById('scheduledMobileList');
-      const emptyState = document.getElementById('emptyScheduledContainer');
-
-      tableBody.innerHTML = '';
-      mobileList.innerHTML = '';
-
-      if (scheduledItems.length === 0) {
-        emptyState.classList.remove('hidden');
+      if (catValues.length === 0) {
+        noDataAlert.classList.remove('hidden');
       } else {
-        emptyState.classList.add('hidden');
-      }
-
-      let incCount = 0, expCount = 0, incTotal = 0, expTotal = 0;
-      let totalAllPendingOccurrences = 0;
-      let totalAllOccurrences = 0;
-
-      scheduledItems.forEach(item => {
-        const isIncome = item.type === 'income';
-        const meta = getCategoryMeta(item.category, item.type);
-        const stat = getScheduleStatusForMonth(item, currentSelectedYear, currentSelectedMonth);
-
-        const totalMonthValue = (parseFloat(item.amount) || 0) * stat.totalOccurrences;
-
-        if (isIncome) {
-          incCount++;
-          incTotal += totalMonthValue;
-        } else {
-          expCount++;
-          expTotal += totalMonthValue;
-        }
-
-        totalAllOccurrences += stat.totalOccurrences;
-        totalAllPendingOccurrences += stat.pendingDates.length;
-
-        // Human-friendly recurrence labels
-        let recurrenceLabel = '';
-        let occurrencesDesc = '';
-        if (item.frequency === 'weekly') {
-          const wDayName = weekdayNames[item.weekday ?? 5];
-          recurrenceLabel = `Semanal (${wDayName})`;
-          occurrencesDesc = `${stat.totalOccurrences} ${wDayName}s neste mês`;
-        } else if (item.frequency === 'biweekly') {
-          recurrenceLabel = 'Quinzenal';
-          occurrencesDesc = `${stat.totalOccurrences} lançamentos no mês`;
-        } else if (item.frequency === 'annual') {
-          recurrenceLabel = 'Anual';
-          occurrencesDesc = `Dia ${item.dueDay}`;
-        } else {
-          recurrenceLabel = 'Mensal';
-          occurrencesDesc = `Todo dia ${item.dueDay}`;
-        }
-
-        // Render date badges for each exact date in the month
-        let dateChipsHtml = '';
-        stat.targetDates.forEach(dStr => {
-          const dayNum = dStr.split('-')[2];
-          const isDone = stat.postedDates.includes(dStr);
-          if (isDone) {
-            dateChipsHtml += `
-              <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold" title="Lançado em ${dStr}">
-                <i class="fa-solid fa-check text-[8px]"></i> Dia ${dayNum}
-              </span>
-            `;
-          } else {
-            dateChipsHtml += `
-              <button onclick="postSingleOccurrence('${item.id}', '${dStr}')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-[10px] font-semibold border border-slate-200 transition" title="Clique para lançar apenas o dia ${dStr}">
-                <i class="fa-solid fa-plus text-[8px]"></i> Dia ${dayNum}
-              </button>
-            `;
+        noDataAlert.classList.add('hidden');
+        chartCategory = new Chart(ctxC, {
+          type: 'doughnut',
+          data: {
+            labels: catLabels,
+            datasets: [{
+              data: catValues,
+              backgroundColor: ['#f43f5e', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b']
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+            cutout: '70%'
           }
         });
-
-        // Desktop Row
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50/70 transition-colors';
-        tr.innerHTML = `
-          <td class="px-6 py-4 font-semibold text-slate-800 flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs flex-shrink-0" style="background-color: ${meta.color}15; color: ${meta.color}">
-              <i class="fa-solid ${meta.icon}"></i>
-            </div>
-            <div>
-              <span class="font-bold text-slate-800 block">${item.description}</span>
-              <span class="text-xs font-normal text-slate-400">${isIncome ? 'Receita' : 'Despesa'} • ${meta.name}</span>
-            </div>
-          </td>
-          <td class="px-6 py-4 text-xs">
-            <div class="font-bold text-slate-800">${recurrenceLabel}</div>
-            <div class="text-slate-400 text-[11px] mb-1.5">${occurrencesDesc}</div>
-            <div class="flex flex-wrap gap-1 items-center">
-              ${dateChipsHtml}
-            </div>
-          </td>
-          <td class="px-6 py-4 text-right">
-            <div class="font-bold text-sm ${isIncome ? 'text-emerald-600' : 'text-rose-500'}">
-              ${currencyFormatter.format(item.amount)} <span class="text-[10px] text-slate-400 font-normal">/ocorrência</span>
-            </div>
-            <div class="text-[11px] font-semibold text-slate-500">
-              Total Mês: ${currencyFormatter.format(totalMonthValue)}
-            </div>
-          </td>
-          <td class="px-6 py-4 text-center">
-            ${stat.isFullyPosted 
-              ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800"><i class="fa-solid fa-circle-check"></i> Concluído (${stat.postedCount}/${stat.totalOccurrences})</span>`
-              : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800"><i class="fa-solid fa-clock"></i> Pendente (${stat.postedCount}/${stat.totalOccurrences})</span>`
-            }
-          </td>
-          <td class="px-6 py-4 text-center">
-            <div class="flex items-center justify-center gap-2">
-              ${!stat.isFullyPosted 
-                ? `<button onclick="postAllOccurrencesForItem('${item.id}')" title="Lançar todas datas pendentes deste item" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition flex items-center gap-1">
-                    <i class="fa-solid fa-plus text-[10px]"></i> Lançar Todas
-                   </button>`
-                : `<button disabled class="px-2 py-1 rounded-lg bg-slate-100 text-slate-400 text-xs font-medium cursor-not-allowed">
-                    Efetivado
-                   </button>`
-              }
-              <button onclick="openEditScheduledModal('${item.id}')" title="Editar Recorrência" class="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 transition">
-                <i class="fa-solid fa-pen-to-square text-xs"></i>
-              </button>
-              <button onclick="promptDelete('scheduled', '${item.id}')" title="Excluir" class="p-1.5 rounded-lg hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition">
-                <i class="fa-solid fa-trash-can text-xs"></i>
-              </button>
-            </div>
-          </td>
-        `;
-        tableBody.appendChild(tr);
-
-        // Mobile Card
-        const card = document.createElement('div');
-        card.className = 'p-3.5 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col gap-2.5';
-        card.innerHTML = `
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs" style="background-color: ${meta.color}15; color: ${meta.color}">
-                <i class="fa-solid ${meta.icon}"></i>
-              </div>
-              <div>
-                <p class="font-bold text-sm text-slate-800">${item.description}</p>
-                <p class="text-[11px] text-slate-400">${recurrenceLabel} • ${occurrencesDesc}</p>
-              </div>
-            </div>
-            <div class="text-right">
-              <span class="font-extrabold text-sm ${isIncome ? 'text-emerald-600' : 'text-rose-500'}">
-                ${currencyFormatter.format(item.amount)}
-              </span>
-              <p class="text-[10px] text-slate-400 font-semibold">Total: ${currencyFormatter.format(totalMonthValue)}</p>
-            </div>
-          </div>
-
-          <div class="p-2 bg-slate-50 rounded-lg">
-            <span class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Datas do mês selecionado:</span>
-            <div class="flex flex-wrap gap-1">
-              ${dateChipsHtml}
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-            <div>
-              ${stat.isFullyPosted 
-                ? `<span class="text-emerald-700 font-bold text-[11px]"><i class="fa-solid fa-check"></i> Todas lançadas</span>`
-                : `<span class="text-amber-700 font-bold text-[11px]"><i class="fa-solid fa-clock"></i> ${stat.pendingDates.length} pendentes</span>`
-              }
-            </div>
-            <div class="flex items-center gap-2">
-              ${!stat.isFullyPosted ? `<button onclick="postAllOccurrencesForItem('${item.id}')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold">Lançar Todas</button>` : ''}
-              <button onclick="openEditScheduledModal('${item.id}')" title="Editar" class="p-1.5 text-slate-500 hover:text-indigo-600"><i class="fa-solid fa-pen-to-square"></i></button>
-              <button onclick="promptDelete('scheduled', '${item.id}')" title="Excluir" class="p-1.5 text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash-can"></i></button>
-            </div>
-          </div>
-        `;
-        mobileList.appendChild(card);
-      });
-
-      // Update Recurrence Stats Section
-      document.getElementById('statScheduledIncome').textContent = currencyFormatter.format(incTotal);
-      document.getElementById('statScheduledIncomeCount').textContent = `${incCount} regras de receita ativas`;
-      document.getElementById('statScheduledExpense').textContent = currencyFormatter.format(expTotal);
-      document.getElementById('statScheduledExpenseCount').textContent = `${expCount} regras de despesa ativas`;
-      
-      const launchedAllCount = totalAllOccurrences - totalAllPendingOccurrences;
-      document.getElementById('statScheduledStatusProgress').textContent = `${launchedAllCount} de ${totalAllOccurrences} Lançados`;
+      }
     }
 
-    function postSingleOccurrence(schedId, dateStr) {
-      const item = scheduledItems.find(s => s.id === schedId);
-      if (!item) return;
-
-      const dateParts = dateStr.split('-');
-      const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+    // --- OPERAÇÕES CRUD TRANSAÇÕES ---
+    async function saveTransaction(e) {
+      e.preventDefault();
+      const id = document.getElementById('transId').value;
+      const type = document.querySelector('input[name="transType"]:checked').value;
+      const description = document.getElementById('transDesc').value.trim();
+      const amount = parseFloat(document.getElementById('transAmount').value);
+      const date = document.getElementById('transDate').value;
+      const category = document.getElementById('transCategory').value;
 
       const newTx = {
-        id: 'tx-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
-        description: `${item.description} (${formattedDate})`,
-        amount: item.amount,
-        type: item.type,
-        category: item.category,
-        date: dateStr,
-        scheduledRef: item.id
+        id: id || generateUUID(),
+        type,
+        description,
+        amount,
+        date,
+        category,
+        user_id: currentUser ? currentUser.id : null
       };
 
-      transactions.unshift(newTx);
-      saveData();
-      refreshAllUI();
-      showToast(`Ocorrência de ${formattedDate} lançada com sucesso!`);
-    }
-
-    function postAllOccurrencesForItem(schedId) {
-      const item = scheduledItems.find(s => s.id === schedId);
-      if (!item) return;
-
-      const stat = getScheduleStatusForMonth(item, currentSelectedYear, currentSelectedMonth);
-      if (stat.pendingDates.length === 0) {
-        showToast('Todas as ocorrências deste item já foram lançadas no mês.', false);
-        return;
-      }
-
-      stat.pendingDates.forEach(dateStr => {
-        const dateParts = dateStr.split('-');
-        const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-        transactions.unshift({
-          id: 'tx-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
-          description: `${item.description} (${formattedDate})`,
-          amount: item.amount,
-          type: item.type,
-          category: item.category,
-          date: dateStr,
-          scheduledRef: item.id
-        });
-      });
-
-      saveData();
-      refreshAllUI();
-      showToast(`${stat.pendingDates.length} ocorrências lançadas no mês!`);
-    }
-
-    function postAllPendingScheduled() {
-      let count = 0;
-      scheduledItems.forEach(item => {
-        const stat = getScheduleStatusForMonth(item, currentSelectedYear, currentSelectedMonth);
-        stat.pendingDates.forEach(dateStr => {
-          const dateParts = dateStr.split('-');
-          const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-          transactions.unshift({
-            id: 'tx-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
-            description: `${item.description} (${formattedDate})`,
-            amount: item.amount,
-            type: item.type,
-            category: item.category,
-            date: dateStr,
-            scheduledRef: item.id
-          });
-          count++;
-        });
-      });
-
-      if (count > 0) {
-        saveData();
-        refreshAllUI();
-        showToast(`${count} lançamentos recorrentes foram efetivados no mês!`);
+      if (supabaseClient && currentUser) {
+        if (id) {
+          await supabaseClient.from('transactions').update(newTx).eq('id', id);
+        } else {
+          await supabaseClient.from('transactions').insert([newTx]);
+        }
+        await fetchCloudData();
       } else {
-        showToast('Não há ocorrências pendentes para o mês ativo.', false);
+        if (id) {
+          const idx = transactions.findIndex(t => t.id === id);
+          if (idx !== -1) transactions[idx] = newTx;
+        } else {
+          transactions.unshift(newTx);
+        }
+        saveLocal();
+        renderApp();
       }
+
+      closeModal();
     }
 
-    function populateCategoryDropdown(selectId, type, selectedValue = '') {
-      const select = document.getElementById(selectId);
-      select.innerHTML = '';
-      const list = type === 'income' ? CATEGORIES.income : CATEGORIES.expense;
-
-      list.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.id;
-        opt.textContent = c.name;
-        if (selectedValue && selectedValue === c.id) opt.selected = true;
-        select.appendChild(opt);
-      });
-    }
-
-    function populateFilterCategorySelect() {
-      const filterSelect = document.getElementById('categoryFilter');
-      filterSelect.innerHTML = '<option value="all">Todas Categorias</option>';
-      const all = [...CATEGORIES.income, ...CATEGORIES.expense];
-      all.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.id;
-        opt.textContent = c.name;
-        filterSelect.appendChild(opt);
-      });
-    }
-
-    function populateDueDays() {
-      const select = document.getElementById('formSchedDueDay');
-      select.innerHTML = '';
-      for (let i = 1; i <= 31; i++) {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = `Dia ${i}`;
-        select.appendChild(opt);
-      }
-    }
-
-    function syncScheduleFrequencyUI(freq) {
-      const weeklyBlock = document.getElementById('weeklyConfigBlock');
-      const monthlyBlock = document.getElementById('monthlyConfigBlock');
-
-      if (freq === 'weekly') {
-        weeklyBlock.classList.remove('hidden');
-        monthlyBlock.classList.add('hidden');
+    async function deleteTransaction(id) {
+      if (!confirm('Deseja realmente excluir este lançamento?')) return;
+      if (supabaseClient && currentUser) {
+        await supabaseClient.from('transactions').delete().eq('id', id);
+        await fetchCloudData();
       } else {
-        weeklyBlock.classList.add('hidden');
-        monthlyBlock.classList.remove('hidden');
+        transactions = transactions.filter(t => t.id !== id);
+        saveLocal();
+        renderApp();
       }
     }
 
-    function setModalType(type) {
-      const input = document.getElementById('formType');
-      const btnInc = document.getElementById('btnTypeIncome');
-      const btnExp = document.getElementById('btnTypeExpense');
-      const iconBox = document.getElementById('modalIconContainer');
-      const currentVal = document.getElementById('formCategory').value;
-
-      input.value = type;
-      if (type === 'income') {
-        btnInc.className = 'type-btn py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-white text-emerald-700 shadow-xs';
-        btnExp.className = 'type-btn py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-slate-500 hover:text-slate-800';
-        iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold';
-        iconBox.innerHTML = '<i class="fa-solid fa-arrow-down-left"></i>';
-      } else {
-        btnExp.className = 'type-btn py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-white text-rose-600 shadow-xs';
-        btnInc.className = 'type-btn py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-slate-500 hover:text-slate-800';
-        iconBox.className = 'w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold';
-        iconBox.innerHTML = '<i class="fa-solid fa-arrow-up-right"></i>';
-      }
-      populateCategoryDropdown('formCategory', type, currentVal);
-    }
-
-    function setScheduledModalType(type) {
-      const input = document.getElementById('formSchedType');
-      const btnInc = document.getElementById('btnSchedTypeIncome');
-      const btnExp = document.getElementById('btnSchedTypeExpense');
-      const currentVal = document.getElementById('formSchedCategory').value;
-
-      input.value = type;
-      if (type === 'income') {
-        btnInc.className = 'py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-white text-emerald-700 shadow-xs';
-        btnExp.className = 'py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-slate-500 hover:text-slate-800';
-      } else {
-        btnExp.className = 'py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-white text-rose-600 shadow-xs';
-        btnInc.className = 'py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-slate-500 hover:text-slate-800';
-      }
-      populateCategoryDropdown('formSchedCategory', type, currentVal);
-    }
-
-    // Transaction Modals
-    function openNewModal() {
-      document.getElementById('modalTitle').textContent = 'Nova Movimentação';
-      document.getElementById('formTransactionId').value = '';
-      document.getElementById('formDescription').value = '';
-      document.getElementById('formAmount').value = '';
-
-      const today = new Date();
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      document.getElementById('formDate').value = todayStr;
-
-      setModalType('income');
-      document.getElementById('transactionModal').classList.remove('hidden');
-    }
-
-    function openEditModal(id) {
+    function editTransaction(id) {
       const item = transactions.find(t => t.id === id);
       if (!item) return;
 
-      document.getElementById('modalTitle').textContent = 'Editar Movimentação';
-      document.getElementById('formTransactionId').value = item.id;
-      document.getElementById('formDescription').value = item.description;
-      document.getElementById('formAmount').value = item.amount;
-      document.getElementById('formDate').value = item.date;
+      document.getElementById('modalTransactionTitle').textContent = 'Editar Movimentação';
+      document.getElementById('transId').value = item.id;
+      document.querySelector(`input[name="transType"][value="${item.type}"]`).checked = true;
+      updateCategorySelect();
 
-      setModalType(item.type);
-      populateCategoryDropdown('formCategory', item.type, item.category);
+      document.getElementById('transDesc').value = item.description;
+      document.getElementById('transAmount').value = item.amount;
+      document.getElementById('transDate').value = item.date;
+      document.getElementById('transCategory').value = item.category;
 
-      document.getElementById('transactionModal').classList.remove('hidden');
+      document.getElementById('modalTransaction').classList.remove('hidden');
     }
 
-    function closeTxModal() {
-      document.getElementById('transactionModal').classList.add('hidden');
+    // --- OPERAÇÕES RECORRÊNCIA ---
+    async function saveRecurring(e) {
+      e.preventDefault();
+      const id = document.getElementById('recurId').value;
+      const type = document.querySelector('input[name="recurType"]:checked').value;
+      const description = document.getElementById('recurDesc').value.trim();
+      const amount = parseFloat(document.getElementById('recurAmount').value);
+      const frequency = document.getElementById('recurFrequency').value;
+      const due_day = parseInt(document.getElementById('recurDueDay').value) || 5;
+      const weekday = parseInt(document.getElementById('recurWeekday').value) || 0;
+      const category = document.getElementById('recurCategory').value;
+
+      const rule = {
+        id: id || generateUUID(),
+        type,
+        description,
+        amount,
+        frequency,
+        due_day,
+        weekday,
+        category,
+        user_id: currentUser ? currentUser.id : null
+      };
+
+      if (supabaseClient && currentUser) {
+        if (id) {
+          await supabaseClient.from('recurring_rules').update(rule).eq('id', id);
+        } else {
+          await supabaseClient.from('recurring_rules').insert([rule]);
+        }
+        await fetchCloudData();
+      } else {
+        if (id) {
+          const idx = recurringRules.findIndex(r => r.id === id);
+          if (idx !== -1) recurringRules[idx] = rule;
+        } else {
+          recurringRules.push(rule);
+        }
+        saveLocal();
+        renderApp();
+      }
+
+      closeRecurringModal();
     }
 
-    function openNewScheduledModal() {
-      document.getElementById('modalScheduledTitle').textContent = 'Nova Recorrência';
-      document.getElementById('btnSaveSchedText').textContent = 'Salvar Recorrência';
-      document.getElementById('formScheduledId').value = '';
-      document.getElementById('formSchedDescription').value = '';
-      document.getElementById('formSchedAmount').value = '';
-      document.getElementById('formSchedFrequency').value = 'weekly';
-      document.getElementById('formSchedWeekday').value = '5'; // Friday
-      document.getElementById('formSchedDueDay').value = '5';
-
-      syncScheduleFrequencyUI('weekly');
-      setScheduledModalType('expense');
-      document.getElementById('scheduledModal').classList.remove('hidden');
+    async function deleteRecurring(id) {
+      if (!confirm('Deseja excluir esta regra de recorrência?')) return;
+      if (supabaseClient && currentUser) {
+        await supabaseClient.from('recurring_rules').delete().eq('id', id);
+        await fetchCloudData();
+      } else {
+        recurringRules = recurringRules.filter(r => r.id !== id);
+        saveLocal();
+        renderApp();
+      }
     }
 
-    function openEditScheduledModal(id) {
-      const item = scheduledItems.find(s => s.id === id);
+    function editRecurring(id) {
+      const item = recurringRules.find(r => r.id === id);
       if (!item) return;
 
-      document.getElementById('modalScheduledTitle').textContent = 'Editar Recorrência';
-      document.getElementById('btnSaveSchedText').textContent = 'Atualizar Recorrência';
-      document.getElementById('formScheduledId').value = item.id;
-      document.getElementById('formSchedDescription').value = item.description;
-      document.getElementById('formSchedAmount').value = item.amount;
-      document.getElementById('formSchedFrequency').value = item.frequency || 'monthly';
-      document.getElementById('formSchedWeekday').value = (item.weekday !== undefined) ? item.weekday : '5';
-      document.getElementById('formSchedDueDay').value = item.dueDay || '5';
+      document.getElementById('modalRecurringTitle').textContent = 'Editar Programação';
+      document.getElementById('recurId').value = item.id;
+      document.querySelector(`input[name="recurType"][value="${item.type}"]`).checked = true;
+      updateRecurCategorySelect();
 
-      syncScheduleFrequencyUI(item.frequency || 'monthly');
-      setScheduledModalType(item.type);
-      populateCategoryDropdown('formSchedCategory', item.type, item.category);
+      document.getElementById('recurDesc').value = item.description;
+      document.getElementById('recurAmount').value = item.amount;
+      document.getElementById('recurFrequency').value = item.frequency;
+      document.getElementById('recurDueDay').value = item.due_day || 5;
+      document.getElementById('recurWeekday').value = item.weekday || 0;
+      document.getElementById('recurCategory').value = item.category;
 
-      document.getElementById('scheduledModal').classList.remove('hidden');
+      onFrequencyChange();
+      document.getElementById('modalRecurring').classList.remove('hidden');
     }
 
-    function closeScheduledModal() {
-      document.getElementById('scheduledModal').classList.add('hidden');
-    }
+    async function fulfillSingleOccurrence(ruleId, dateStr) {
+      const rule = recurringRules.find(r => r.id === ruleId);
+      if (!rule) return;
 
-    // Deletion Modal
-    function promptDelete(type, id) {
-      deleteTarget = { type, id };
-      const titleEl = document.getElementById('deleteModalTitle');
-      const descEl = document.getElementById('deleteModalDesc');
+      const newTx = {
+        id: generateUUID(),
+        description: rule.description,
+        amount: rule.amount,
+        type: rule.type,
+        category: rule.category,
+        date: dateStr,
+        recurring_id: rule.id,
+        user_id: currentUser ? currentUser.id : null
+      };
 
-      if (type === 'transaction') {
-        titleEl.textContent = 'Excluir Movimentação?';
-        descEl.textContent = 'Esta movimentação será apagada do extrato financeiro.';
+      if (supabaseClient && currentUser) {
+        await supabaseClient.from('transactions').insert([newTx]);
+        await fetchCloudData();
       } else {
-        titleEl.textContent = 'Excluir Regra de Recorrência?';
-        descEl.textContent = 'Esta regra programada será apagada. Lançamentos já efetivados no extrato serão mantidos.';
+        transactions.unshift(newTx);
+        saveLocal();
+        renderApp();
       }
-      document.getElementById('deleteConfirmModal').classList.remove('hidden');
     }
 
-    function confirmDelete() {
-      if (deleteTarget.type === 'transaction') {
-        transactions = transactions.filter(t => t.id !== deleteTarget.id);
-        showToast('Movimentação excluída com sucesso.');
-      } else if (deleteTarget.type === 'scheduled') {
-        scheduledItems = scheduledItems.filter(s => s.id !== deleteTarget.id);
-        showToast('Recorrência excluída com sucesso.');
-      }
-      saveData();
-      refreshAllUI();
-      document.getElementById('deleteConfirmModal').classList.add('hidden');
-    }
+    async function fulfillAllPendingCurrentMonth() {
+      if (!currentPeriod) return alert('Selecione um mês específico para efetivar as programações.');
+      const [y, m] = currentPeriod.split('-').map(Number);
+      const toInsert = [];
 
-    function exportToCSV() {
-      if (transactions.length === 0) {
-        showToast('Nenhum dado disponível para exportação.', false);
+      recurringRules.forEach(rule => {
+        const expectedDates = getRecurrenceDatesForMonth(rule, y, m);
+        expectedDates.forEach(expectedDate => {
+          const already = transactions.some(t => t.recurring_id === rule.id && t.date === expectedDate);
+          if (!already) {
+            toInsert.push({
+              id: generateUUID(),
+              description: rule.description,
+              amount: rule.amount,
+              type: rule.type,
+              category: rule.category,
+              date: expectedDate,
+              recurring_id: rule.id,
+              user_id: currentUser ? currentUser.id : null
+            });
+          }
+        });
+      });
+
+      if (toInsert.length === 0) {
+        alert('Não há ocorrências pendentes para efetivar neste mês.');
         return;
       }
 
-      let csv = 'ID,Data,Tipo,Descricao,Categoria,Valor,Recorrente\n';
-      transactions.forEach(t => {
-        const cat = getCategoryMeta(t.category, t.type).name;
-        const cleanDesc = `"${t.description.replace(/"/g, '""')}"`;
-        const isRec = t.scheduledRef ? 'Sim' : 'Nao';
-        csv += `${t.id},${t.date},${t.type},${cleanDesc},"${cat}",${t.amount},${isRec}\n`;
-      });
+      if (supabaseClient && currentUser) {
+        await supabaseClient.from('transactions').insert(toInsert);
+        await fetchCloudData();
+      } else {
+        transactions.unshift(...toInsert);
+        saveLocal();
+        renderApp();
+      }
+      alert(`${toInsert.length} ocorrência(s) efetivada(s) com sucesso!`);
+    }
 
+    // --- AUTENTICAÇÃO E CONEXÃO SUPABASE ---
+    function openCloudModal() {
+      document.getElementById('cfgSupabaseUrl').value = localStorage.getItem('finflow_supa_url') || '';
+      document.getElementById('cfgSupabaseKey').value = localStorage.getItem('finflow_supa_key') || '';
+      document.getElementById('modalCloud').classList.remove('hidden');
+    }
+
+    function closeCloudModal() {
+      document.getElementById('modalCloud').classList.add('hidden');
+    }
+
+    function saveCloudConfig(e) {
+      e.preventDefault();
+      const url = document.getElementById('cfgSupabaseUrl').value.trim();
+      const key = document.getElementById('cfgSupabaseKey').value.trim();
+      localStorage.setItem('finflow_supa_url', url);
+      localStorage.setItem('finflow_supa_key', key);
+      closeCloudModal();
+      location.reload();
+    }
+
+    function disconnectCloud() {
+      if (!confirm('Deseja desconectar a nuvem e voltar ao modo LocalStorage?')) return;
+      localStorage.removeItem('finflow_supa_url');
+      localStorage.removeItem('finflow_supa_key');
+      closeCloudModal();
+      location.reload();
+    }
+
+    function handleAuthClick() {
+      if (currentUser) {
+        document.getElementById('viewUserLogged').classList.remove('hidden');
+        document.getElementById('formAuth').classList.add('hidden');
+        document.getElementById('currentUserEmail').textContent = currentUser.email;
+      } else {
+        document.getElementById('viewUserLogged').classList.add('hidden');
+        document.getElementById('formAuth').classList.remove('hidden');
+        setAuthMode('login');
+      }
+      document.getElementById('modalAuth').classList.remove('hidden');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('modalAuth').classList.add('hidden');
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      const bLog = document.getElementById('tabLogin');
+      const bReg = document.getElementById('tabRegister');
+      const submit = document.getElementById('btnAuthSubmit');
+
+      if (mode === 'login') {
+        bLog.className = 'flex-1 py-1.5 rounded-md bg-white text-slate-900 shadow-sm';
+        bReg.className = 'flex-1 py-1.5 rounded-md text-slate-600';
+        submit.textContent = 'Entrar';
+      } else {
+        bReg.className = 'flex-1 py-1.5 rounded-md bg-white text-slate-900 shadow-sm';
+        bLog.className = 'flex-1 py-1.5 rounded-md text-slate-600';
+        submit.textContent = 'Criar Nova Conta';
+      }
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      if (!supabaseClient) {
+        alert('Configure primeiro a URL e Chave do Supabase no botão "Conectar Nuvem".');
+        return;
+      }
+
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+
+      try {
+        if (authMode === 'login') {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          alert('Login realizado com sucesso!');
+        } else {
+          const { data, error } = await supabaseClient.auth.signUp({ email, password });
+          if (error) throw error;
+          alert('Conta criada com sucesso! Se você desativou a confirmação de e-mail, seu login já está pronto.');
+        }
+        closeAuthModal();
+      } catch (err) {
+        alert('Erro de autenticação: ' + err.message);
+      }
+    }
+
+    async function signOut() {
+      if (supabaseClient) await supabaseClient.auth.signOut();
+      currentUser = null;
+      closeAuthModal();
+      updateAuthHeader();
+      loadLocalData();
+      renderApp();
+    }
+
+    function updateAuthHeader() {
+      const label = document.getElementById('labelAuthStatus');
+      const icon = document.getElementById('authIcon');
+      if (currentUser) {
+        label.textContent = currentUser.email.split('@')[0];
+        icon.className = 'ph-bold ph-user-check text-base text-emerald-600';
+      } else {
+        label.textContent = 'Entrar / Cadastrar';
+        icon.className = 'ph-bold ph-user text-base text-slate-600';
+      }
+    }
+
+    // --- CONTROLE DE NAVEGAÇÃO E MODAIS ---
+    function switchTab(tab) {
+      activeTab = tab;
+      const vD = document.getElementById('viewDashboard');
+      const vR = document.getElementById('viewRecurring');
+      const tD = document.getElementById('tabDash');
+      const tR = document.getElementById('tabRecur');
+
+      if (tab === 'dashboard') {
+        vD.classList.remove('hidden');
+        vR.classList.add('hidden');
+        tD.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-brand-50 text-brand-700 border border-brand-200 flex items-center gap-2';
+        tR.className = 'px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2';
+      } else {
+        vR.classList.remove('hidden');
+        vD.classList.add('hidden');
+        tR.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-brand-50 text-brand-700 border border-brand-200 flex items-center gap-2';
+        tD.className = 'px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2';
+      }
+    }
+
+    function changeMonth(delta) {
+      if (!currentPeriod) initCurrentPeriod();
+      const [y, m] = currentPeriod.split('-').map(Number);
+      const target = new Date(y, m - 1 + delta, 1);
+      const yr = target.getFullYear();
+      const mo = String(target.getMonth() + 1).padStart(2, '0');
+      currentPeriod = `${yr}-${mo}`;
+      document.getElementById('monthSelector').value = currentPeriod;
+      renderApp();
+    }
+
+    function onMonthChange() {
+      currentPeriod = document.getElementById('monthSelector').value;
+      renderApp();
+    }
+
+    function setAllPeriod() {
+      currentPeriod = '';
+      document.getElementById('monthSelector').value = '';
+      renderApp();
+    }
+
+    function openModal() {
+      document.getElementById('modalTransactionTitle').textContent = 'Nova Movimentação';
+      document.getElementById('transId').value = '';
+      document.getElementById('formTransaction').reset();
+      document.getElementById('transDate').value = new Date().toISOString().split('T')[0];
+      updateCategorySelect();
+      document.getElementById('modalTransaction').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modalTransaction').classList.add('hidden');
+    }
+
+    function openRecurringModal() {
+      document.getElementById('modalRecurringTitle').textContent = 'Programar Recorrência';
+      document.getElementById('recurId').value = '';
+      document.getElementById('formRecurring').reset();
+      onFrequencyChange();
+      updateRecurCategorySelect();
+      document.getElementById('modalRecurring').classList.remove('hidden');
+    }
+
+    function closeRecurringModal() {
+      document.getElementById('modalRecurring').classList.add('hidden');
+    }
+
+    function onFrequencyChange() {
+      const freq = document.getElementById('recurFrequency').value;
+      const fDue = document.getElementById('fieldDueDay');
+      const fWeek = document.getElementById('fieldWeekday');
+
+      if (freq === 'weekly') {
+        fDue.classList.add('hidden');
+        fWeek.classList.remove('hidden');
+      } else {
+        fDue.classList.remove('hidden');
+        fWeek.classList.add('hidden');
+      }
+    }
+
+    function openResetModal() { document.getElementById('modalReset').classList.remove('hidden'); }
+    function closeResetModal() { document.getElementById('modalReset').classList.add('hidden'); }
+
+    function clearAllData() {
+      transactions = [];
+      recurringRules = [];
+      saveLocal();
+      closeResetModal();
+      renderApp();
+    }
+
+    function restoreDemoData() {
+      loadDemoPresets();
+      saveLocal();
+      closeResetModal();
+      renderApp();
+    }
+
+    function loadDemoPresets() {
+      transactions = [
+        { id: generateUUID(), type: 'income', description: 'Salário Mensal', amount: 7500, date: `${currentPeriod}-05`, category: 'Salário' },
+        { id: generateUUID(), type: 'expense', description: 'Aluguel do Mês', amount: 2200, date: `${currentPeriod}-08`, category: 'Moradia / Aluguel' },
+        { id: generateUUID(), type: 'expense', description: 'Supermercado Semanal', amount: 480, date: `${currentPeriod}-03`, category: 'Supermercado' },
+      ];
+      recurringRules = [
+        { id: generateUUID(), type: 'expense', description: 'Feira / Mercado Semanal', amount: 350, frequency: 'weekly', weekday: 5, category: 'Supermercado' },
+        { id: generateUUID(), type: 'income', description: 'Freelance Semanal', amount: 800, frequency: 'weekly', weekday: 5, category: 'Serviços / Freelance' },
+        { id: generateUUID(), type: 'expense', description: 'Internet Fibra', amount: 149.90, frequency: 'monthly', due_day: 10, category: 'Assinaturas' },
+      ];
+    }
+
+    function populateCategoryDropdowns() {
+      const catFilter = document.getElementById('categoryFilter');
+      const allCats = [...new Set([...CATEGORIES.income, ...CATEGORIES.expense])];
+      allCats.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        catFilter.appendChild(opt);
+      });
+      updateCategorySelect();
+      updateRecurCategorySelect();
+    }
+
+    function updateCategorySelect() {
+      const type = document.querySelector('input[name="transType"]:checked')?.value || 'income';
+      const select = document.getElementById('transCategory');
+      select.innerHTML = '';
+      CATEGORIES[type].forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+    }
+
+    function updateRecurCategorySelect() {
+      const type = document.querySelector('input[name="recurType"]:checked')?.value || 'income';
+      const select = document.getElementById('recurCategory');
+      select.innerHTML = '';
+      CATEGORIES[type].forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+    }
+
+    function exportCSV() {
+      if (transactions.length === 0) return alert('Sem dados para exportar.');
+      let csv = 'ID;Tipo;Descricao;Categoria;Data;Valor\n';
+      transactions.forEach(t => {
+        csv += `"${t.id}";"${t.type}";"${t.description}";"${t.category}";"${t.date}";"${t.amount}"\n`;
+      });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `finflow_extrato_${new Date().toISOString().slice(0, 10)}.csv`;
-      document.body.appendChild(a);
+      a.download = `finflow_export_${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
-      document.body.removeChild(a);
-      showToast('Extrato CSV gerado e baixado!');
     }
 
-    function refreshAllUI() {
-      updatePeriodLabel();
-      updateKPIs();
-      renderTransactions();
-      renderScheduled();
-      updateCharts();
+    // --- UTILITÁRIOS ---
+    function formatCurrency(v) {
+      return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      populateDueDays();
-      populateFilterCategorySelect();
-      loadData();
-      updatePeriodLabel();
-      refreshAllUI();
+    function formatDateDisplay(d) {
+      if (!d) return '';
+      const [yr, mo, dy] = d.split('-');
+      return `${dy}/${mo}/${yr}`;
+    }
 
-      // Navigation Tabs
-      const tabDash = document.getElementById('tabDashboard');
-      const tabSched = document.getElementById('tabScheduled');
-      const viewDash = document.getElementById('viewDashboardContainer');
-      const viewSched = document.getElementById('viewScheduledContainer');
+    function translateFreq(f) {
+      const map = { weekly: 'Semanal', biweekly: 'Quinzenal', monthly: 'Mensal', annual: 'Anual' };
+      return map[f] || f;
+    }
 
-      tabDash.addEventListener('click', () => {
-        tabDash.className = 'view-tab-btn px-4 py-2 rounded-xl bg-white text-slate-900 shadow-sm flex items-center gap-2 transition';
-        tabSched.className = 'view-tab-btn px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 flex items-center gap-2 transition';
-        viewDash.classList.remove('hidden');
-        viewSched.classList.add('hidden');
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
       });
+    }
 
-      tabSched.addEventListener('click', () => {
-        tabSched.className = 'view-tab-btn px-4 py-2 rounded-xl bg-white text-slate-900 shadow-sm flex items-center gap-2 transition';
-        tabDash.className = 'view-tab-btn px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 flex items-center gap-2 transition';
-        viewDash.classList.add('hidden');
-        viewSched.classList.remove('hidden');
-      });
-
-      // Period Controls
-      document.getElementById('btnPrevMonth').addEventListener('click', () => {
-        isAllMonthsView = false;
-        currentSelectedMonth--;
-        if (currentSelectedMonth < 1) {
-          currentSelectedMonth = 12;
-          currentSelectedYear--;
-        }
-        refreshAllUI();
-      });
-
-      document.getElementById('btnNextMonth').addEventListener('click', () => {
-        isAllMonthsView = false;
-        currentSelectedMonth++;
-        if (currentSelectedMonth > 12) {
-          currentSelectedMonth = 1;
-          currentSelectedYear++;
-        }
-        refreshAllUI();
-      });
-
-      document.getElementById('btnShowAllMonths').addEventListener('click', () => {
-        isAllMonthsView = true;
-        refreshAllUI();
-      });
-
-      document.getElementById('btnGoCurrentMonth').addEventListener('click', () => {
-        const d = new Date();
-        currentSelectedYear = d.getFullYear();
-        currentSelectedMonth = d.getMonth() + 1;
-        isAllMonthsView = false;
-        refreshAllUI();
-      });
-
-      document.getElementById('monthPickerInput').addEventListener('change', (e) => {
-        if (!e.target.value) return;
-        const [y, m] = e.target.value.split('-');
-        currentSelectedYear = parseInt(y, 10);
-        currentSelectedMonth = parseInt(m, 10);
-        isAllMonthsView = false;
-        refreshAllUI();
-      });
-
-      // Filters
-      document.querySelectorAll('.filter-tab').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          document.querySelectorAll('.filter-tab').forEach(b => {
-            b.classList.remove('bg-white', 'text-slate-800', 'shadow-xs');
-            b.classList.add('text-slate-500');
-          });
-          e.target.classList.add('bg-white', 'text-slate-800', 'shadow-xs');
-          e.target.classList.remove('text-slate-500');
-
-          currentFilterType = e.target.dataset.filter;
-          renderTransactions();
-        });
-      });
-
-      document.getElementById('categoryFilter').addEventListener('change', (e) => {
-        currentCategoryFilter = e.target.value;
-        renderTransactions();
-      });
-
-      document.getElementById('searchInput').addEventListener('input', (e) => {
-        searchQuery = e.target.value;
-        renderTransactions();
-      });
-
-      // Transaction Form
-      document.getElementById('btnOpenNewModal').addEventListener('click', openNewModal);
-      document.getElementById('btnEmptyAdd').addEventListener('click', openNewModal);
-      document.getElementById('btnCloseModal').addEventListener('click', closeTxModal);
-      document.getElementById('btnCancelModal').addEventListener('click', closeTxModal);
-
-      document.getElementById('btnTypeIncome').addEventListener('click', () => setModalType('income'));
-      document.getElementById('btnTypeExpense').addEventListener('click', () => setModalType('expense'));
-
-      document.getElementById('transactionForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const id = document.getElementById('formTransactionId').value;
-        const type = document.getElementById('formType').value;
-        const amount = parseFloat(document.getElementById('formAmount').value);
-        const description = document.getElementById('formDescription').value.trim();
-        const category = document.getElementById('formCategory').value;
-        const date = document.getElementById('formDate').value;
-
-        if (isNaN(amount) || amount <= 0) {
-          showToast('Informe um valor válido maior que zero.', false);
-          return;
-        }
-
-        if (id) {
-          const idx = transactions.findIndex(t => t.id === id);
-          if (idx !== -1) {
-            transactions[idx] = { ...transactions[idx], type, amount, description, category, date };
-            showToast('Movimentação atualizada com sucesso!');
-          }
-        } else {
-          transactions.unshift({
-            id: 'tx-' + Date.now(),
-            type,
-            amount,
-            description,
-            category,
-            date
-          });
-          showToast('Movimentação adicionada!');
-        }
-
-        saveData();
-        closeTxModal();
-        refreshAllUI();
-      });
-
-      // Scheduled Recurrence Form
-      document.getElementById('btnOpenNewScheduledModal').addEventListener('click', openNewScheduledModal);
-      document.getElementById('btnCloseScheduledModal').addEventListener('click', closeScheduledModal);
-      document.getElementById('btnCancelSchedModal').addEventListener('click', closeScheduledModal);
-
-      document.getElementById('btnSchedTypeIncome').addEventListener('click', () => setScheduledModalType('income'));
-      document.getElementById('btnSchedTypeExpense').addEventListener('click', () => setScheduledModalType('expense'));
-
-      document.getElementById('formSchedFrequency').addEventListener('change', (e) => {
-        syncScheduleFrequencyUI(e.target.value);
-      });
-
-      document.getElementById('scheduledForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const id = document.getElementById('formScheduledId').value;
-        const type = document.getElementById('formSchedType').value;
-        const description = document.getElementById('formSchedDescription').value.trim();
-        const amount = parseFloat(document.getElementById('formSchedAmount').value);
-        const frequency = document.getElementById('formSchedFrequency').value;
-        const weekday = parseInt(document.getElementById('formSchedWeekday').value, 10);
-        const dueDay = parseInt(document.getElementById('formSchedDueDay').value, 10);
-        const category = document.getElementById('formSchedCategory').value;
-
-        if (isNaN(amount) || amount <= 0) {
-          showToast('Informe um valor válido maior que zero.', false);
-          return;
-        }
-
-        if (id) {
-          const idx = scheduledItems.findIndex(s => s.id === id);
-          if (idx !== -1) {
-            scheduledItems[idx] = { 
-              id, 
-              type, 
-              description, 
-              amount, 
-              frequency, 
-              weekday, 
-              dueDay, 
-              category 
-            };
-            showToast('Recorrência atualizada com sucesso!');
-          }
-        } else {
-          scheduledItems.push({
-            id: 'sch-' + Date.now(),
-            type,
-            description,
-            amount,
-            frequency,
-            weekday,
-            dueDay,
-            category
-          });
-          showToast('Recorrência cadastrada com sucesso!');
-        }
-
-        saveData();
-        closeScheduledModal();
-        refreshAllUI();
-      });
-
-      document.getElementById('btnPostAllScheduled').addEventListener('click', postAllPendingScheduled);
-
-      // Reset Modal Handlers
-      const resetModal = document.getElementById('resetConfirmModal');
-      document.getElementById('btnOpenResetModal').addEventListener('click', () => {
-        resetModal.classList.remove('hidden');
-      });
-
-      document.getElementById('btnCancelResetModal').addEventListener('click', () => {
-        resetModal.classList.add('hidden');
-      });
-
-      document.getElementById('btnRestoreDemoData').addEventListener('click', () => {
-        restoreDemoDefaults();
-        resetModal.classList.add('hidden');
-        refreshAllUI();
-        showToast('Dados de exemplo restaurados com sucesso!');
-      });
-
-      document.getElementById('btnWipeAllData').addEventListener('click', () => {
-        wipeAllData();
-        resetModal.classList.add('hidden');
-        refreshAllUI();
-        showToast('Todos os registros foram apagados.');
-      });
-
-      // Delete Modal Handlers
-      document.getElementById('btnCancelDelete').addEventListener('click', () => {
-        document.getElementById('deleteConfirmModal').classList.add('hidden');
-      });
-      document.getElementById('btnConfirmDelete').addEventListener('click', confirmDelete);
-
-      // CSV Export
-      document.getElementById('btnExportData').addEventListener('click', exportToCSV);
-    });
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[tag] || tag));
+    }
   </script>
 </body>
 </html>
