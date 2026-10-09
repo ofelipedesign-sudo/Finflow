@@ -1186,7 +1186,7 @@
       document.getElementById('transAmount').focus();
     }
 
-    // --- LEITOR E IMPORTADOR DE FATURAS PDF (SANTANDER & OUTROS) ---
+    // --- LEITOR E IMPORTADOR DE FATURAS PDF (ROBUSTO COM VARREDURA COMPLETA) ---
     async function handleInvoiceFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1194,7 +1194,6 @@
       if (file.name.toLowerCase().endsWith('.pdf')) {
         await parsePdfInvoice(file);
       } else {
-        // Fallback para arquivo de texto/extrato
         const text = await file.text();
         extractInvoiceDataFromText(text, file.name);
       }
@@ -1207,39 +1206,49 @@
         const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let fullText = '';
 
-        // Lê até as 3 primeiras páginas da fatura onde geralmente fica o resumo
-        const maxPages = Math.min(pdf.numPages, 3);
-        for (let i = 1; i <= maxPages; i++) {
+        // Lê TODAS as páginas do documento (garante encontrar resumos no final)
+        for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const content = await page.getTextContent();
           const pageText = content.items.map(item => item.str).join(' ');
-          fullText += ' ' + pageText;
+          fullText += '\n ' + pageText;
         }
 
         extractInvoiceDataFromText(fullText, file.name);
       } catch (err) {
-        alert('Não foi possível ler o arquivo PDF da fatura: ' + err.message);
+        alert('Não foi possível ler o arquivo PDF: ' + err.message);
       }
     }
 
     function extractInvoiceDataFromText(rawText, filename) {
       let detectedAmount = null;
       let detectedDate = null;
+      let detectedBank = 'Fatura Cartão de Crédito';
 
-      // Normaliza espaços
-      const text = rawText.replace(/\s+/g, ' ');
+      // 1. Identificar Banco / Emissor para a Descrição
+      if (/sistema de empr[eé]stimo|SET/i.test(rawText)) detectedBank = 'Fatura / Lançamentos SET';
+      else if (/santander/i.test(rawText)) detectedBank = 'Fatura Santander';
+      else if (/mercado\s*pago/i.test(rawText)) detectedBank = 'Fatura Mercado Pago';
+      else if (/nubank/i.test(rawText)) detectedBank = 'Fatura Nubank';
+      else if (/ita[uú]/i.test(rawText)) detectedBank = 'Fatura Itaú';
+      else if (/bradesco/i.test(rawText)) detectedBank = 'Fatura Bradesco';
 
-      // 1. Procura por padrões de Valor Total da Fatura (Santander, Itaú, Nubank, etc.)
-      const totalPatterns = [
-        /(?:total\s+desta\s+fatura|total\s+da\s+fatura|valor\s+a\s+pagar|pagamento\s+total|saldo\s+atual|total\s+a\s+pagar)\D{0,25}R?\$?\s*([\d\.]*,\d{2})/i,
-        /R\$\s*([\d\.]*,\d{2})/i
+      // 2. Extração do Total Consolidado com Escala de Prioridade
+      const textNorm = rawText.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
+
+      // Padrões de alta prioridade (frases explícitas de total geral)
+      const explicitTotalRegexes = [
+        /TOTAL\s+DOS\s+LAN[CÇ]AMENTOS\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i,
+        /TOTAL\s+(?:DESTA\s+)?FATURA\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i,
+        /VALOR\s+A\s+PAGAR\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i,
+        /PAGAMENTO\s+TOTAL\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i,
+        /TOTAL\s+CONSOLIDADO\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i
       ];
 
-      for (const pattern of totalPatterns) {
-        const match = text.match(pattern);
-        if (match && match[1]) {
-          const numStr = match[1].replace(/\./g, '').replace(',', '.');
-          const val = parseFloat(numStr);
+      for (const rx of explicitTotalRegexes) {
+        const m = textNorm.match(rx);
+        if (m && m[1]) {
+          const val = parseFloat(m[1].replace(/\./g, '').replace(',', '.'));
           if (!isNaN(val) && val > 0) {
             detectedAmount = val;
             break;
@@ -1247,19 +1256,29 @@
         }
       }
 
-      // 2. Procura por padrões de Data de Vencimento
-      const datePatterns = [
-        /(?:vencimento|vence\s+em|data\s+de\s+vencimento)\D{0,20}(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})/i,
+      // Se não encontrou por frase exata, varre os valores no terço final do arquivo e captura o maior
+      if (!detectedAmount) {
+        const lastPart = textNorm.slice(Math.floor(textNorm.length * 0.65));
+        const allMoneyMatches = [...lastPart.matchAll(/R\$\s*([\d\.]*,\d{2})/gi)];
+        let maxVal = 0;
+        for (const match of allMoneyMatches) {
+          const v = parseFloat(match[1].replace(/\./g, '').replace(',', '.'));
+          if (v > maxVal) maxVal = v;
+        }
+        if (maxVal > 0) detectedAmount = maxVal;
+      }
+
+      // 3. Extração da Data de Vencimento / Referência
+      const dateRegexes = [
+        /(?:vencimento|vence\s+em|data\s+de\s+vencimento)\D{0,15}(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})/i,
+        /(?:gerado\s+em|data)\D{0,10}(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})/i,
         /(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})/
       ];
 
-      for (const pattern of datePatterns) {
-        const match = text.match(pattern);
-        if (match && match[1] && match[2] && match[3]) {
-          const day = match[1];
-          const month = match[2];
-          const year = match[3];
-          detectedDate = `${year}-${month}-${day}`;
+      for (const rx of dateRegexes) {
+        const m = textNorm.match(rx);
+        if (m && m[1] && m[2] && m[3]) {
+          detectedDate = `${m[3]}-${m[2]}-${m[1]}`;
           break;
         }
       }
@@ -1267,9 +1286,9 @@
       // Preenche os campos do modal de confirmação
       document.getElementById('invAmount').value = detectedAmount ? detectedAmount.toFixed(2) : '0.00';
       document.getElementById('invDate').value = detectedDate || new Date().toISOString().split('T')[0];
-      document.getElementById('invDesc').value = 'Fatura Cartão Santander';
+      document.getElementById('invDesc').value = detectedBank;
 
-      // Abre o modal de confirmação
+      // Abre a tela de confirmação
       document.getElementById('modalInvoiceConfirm').classList.remove('hidden');
     }
 
@@ -1292,7 +1311,7 @@
         amount,
         date,
         category,
-        recurring_id: null, // Lançamento Avulso
+        recurring_id: null, // Despesa Avulsa
         user_id: currentUser ? currentUser.id : null,
         created_at: new Date().toISOString()
       };
@@ -1374,7 +1393,7 @@
               <span class="text-slate-500 dark:text-slate-400">Ocorrências:</span>
               <span class="font-bold ${allDone ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}">${fulfilledCount}/${totalExpected}</span>
             </div>
-            <div class="flex flex-wrap gap-1">
+            <div class="flex flex-wrap gap-1.5">
               ${occurrencesHtml}
             </div>
           </div>
