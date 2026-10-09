@@ -116,4 +116,1455 @@
 
         <button onclick="exportCSV()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 transition shadow-sm">
           <i class="ph-bold ph-download-simple text-base text-slate-500"></i>
-          <span class="
+          <span class="hidden sm:inline">Exportar CSV</span>
+        </button>
+
+        <!-- Botão Novo Lançamento Avulso Rápido -->
+        <button onclick="openModal('avulso')" class="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition shadow-sm">
+          <i class="ph-bold ph-lightning text-base text-indigo-600"></i>
+          <span>Lançar Avulso</span>
+        </button>
+
+        <!-- Botão Nova Movimentação Normal -->
+        <button onclick="openModal()" class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition shadow-sm shadow-brand-600/30">
+          <i class="ph-bold ph-plus text-base"></i>
+          <span>Nova Movimentação</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col gap-6">
+
+    <!-- Navegação de Abas -->
+    <div class="flex flex-wrap items-center justify-between border-b border-slate-200 pb-3 gap-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="switchTab('dashboard')" id="tabDash" class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-brand-50 text-brand-700 border border-brand-200 flex items-center gap-2">
+          <i class="ph-bold ph-chart-pie-slice"></i>
+          <span>Painel & Movimentações</span>
+        </button>
+        <button onclick="switchTab('avulsos')" id="tabAvulsos" class="px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2">
+          <i class="ph-bold ph-lightning"></i>
+          <span>Lançamentos Avulsos</span>
+          <span id="badgeAvulsosCount" class="text-[11px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">0</span>
+        </button>
+        <button onclick="switchTab('recurring')" id="tabRecur" class="px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2">
+          <i class="ph-bold ph-calendar-check"></i>
+          <span>Programadas & Recorrência</span>
+          <span id="badgePendingCount" class="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold hidden">0</span>
+        </button>
+      </div>
+
+      <!-- Filtro de Mês/Período -->
+      <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm text-sm">
+        <button onclick="changeMonth(-1)" class="p-1 text-slate-500 hover:text-slate-800 rounded hover:bg-slate-100" title="Mês anterior">
+          <i class="ph-bold ph-caret-left"></i>
+        </button>
+        <input type="month" id="monthSelector" onchange="onMonthChange()" class="text-sm font-semibold text-slate-700 bg-transparent focus:outline-none cursor-pointer">
+        <button onclick="changeMonth(1)" class="p-1 text-slate-500 hover:text-slate-800 rounded hover:bg-slate-100" title="Próximo mês">
+          <i class="ph-bold ph-caret-right"></i>
+        </button>
+        <button onclick="setAllPeriod()" class="text-xs font-semibold px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition ml-1">Todo Período</button>
+      </div>
+    </div>
+
+    <!-- ABA 1: PAINEL & TRANSAÇÕES -->
+    <div id="viewDashboard" class="flex flex-col gap-6">
+
+      <!-- Cards de Indicadores (KPIs) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Saldo Consolidado</span>
+            <div id="iconBalanceBg" class="w-9 h-9 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600">
+              <i class="ph-bold ph-scales text-lg"></i>
+            </div>
+          </div>
+          <div class="mt-4">
+            <h3 id="cardTotalBalance" class="text-2xl font-black text-slate-900 tracking-tight">R$ 0,00</h3>
+            <p id="cardBalanceStatus" class="text-xs text-slate-500 mt-1">Saldo neutro / zerado</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Receitas do Mês</span>
+            <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <i class="ph-bold ph-arrow-up-right text-lg"></i>
+            </div>
+          </div>
+          <div class="mt-4">
+            <h3 id="cardTotalIncome" class="text-2xl font-black text-emerald-600 tracking-tight">R$ 0,00</h3>
+            <p id="cardIncomeCount" class="text-xs text-slate-500 mt-1">0 lançamentos</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Despesas do Mês</span>
+            <div class="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
+              <i class="ph-bold ph-arrow-down-left text-lg"></i>
+            </div>
+          </div>
+          <div class="mt-4">
+            <h3 id="cardTotalExpense" class="text-2xl font-black text-rose-600 tracking-tight">R$ 0,00</h3>
+            <p id="cardExpenseCount" class="text-xs text-slate-500 mt-1">0 lançamentos</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Previsões do Mês</span>
+            <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+              <i class="ph-bold ph-clock-countdown text-lg"></i>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="flex items-center justify-between text-xs font-medium">
+              <span class="text-slate-500">Desp. Previstas:</span>
+              <span id="cardPendingExpense" class="text-rose-600 font-bold">R$ 0,00</span>
+            </div>
+            <div class="flex items-center justify-between text-xs font-medium mt-1">
+              <span class="text-slate-500">Rec. Previstas:</span>
+              <span id="cardPendingIncome" class="text-emerald-600 font-bold">R$ 0,00</span>
+            </div>
+            <p id="cardPendingText" class="text-[11px] text-amber-700 font-semibold mt-2 pt-1 border-t border-slate-100">0 itens pendentes</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficos Visuais -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h4 class="text-sm font-bold text-slate-800">Evolução Mensal (Receitas vs Despesas)</h4>
+            <span class="text-xs text-slate-500">Últimos 6 meses</span>
+          </div>
+          <div class="h-64 relative">
+            <canvas id="chartHistory"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <h4 class="text-sm font-bold text-slate-800">Despesas por Categoria</h4>
+            <span class="text-xs text-slate-500">Período ativo</span>
+          </div>
+          <div class="h-64 relative flex items-center justify-center">
+            <canvas id="chartCategory"></canvas>
+            <div id="noChartCategory" class="absolute inset-0 flex items-center justify-center text-xs text-slate-400 hidden">
+              Sem dados de despesas neste período
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Histórico de Transações -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <h4 class="text-base font-bold text-slate-900">Histórico de Transações</h4>
+            <span id="countTransactionsBadge" class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">0</span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+            <div class="relative flex-1 sm:w-52">
+              <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+              <input type="text" id="searchFilter" oninput="renderApp()" placeholder="Buscar lançamentos..." class="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none">
+            </div>
+
+            <select id="originFilter" onchange="renderApp()" class="text-xs rounded-lg border border-slate-200 py-1.5 px-3 bg-white focus:outline-none">
+              <option value="all">Todas as Origens</option>
+              <option value="avulso">Apenas Avulsos</option>
+              <option value="recorrente">Apenas Recorrentes</option>
+            </select>
+
+            <select id="typeFilter" onchange="renderApp()" class="text-xs rounded-lg border border-slate-200 py-1.5 px-3 bg-white focus:outline-none">
+              <option value="all">Todos os Tipos</option>
+              <option value="income">Apenas Receitas</option>
+              <option value="expense">Apenas Despesas</option>
+            </select>
+
+            <select id="categoryFilter" onchange="renderApp()" class="text-xs rounded-lg border border-slate-200 py-1.5 px-3 bg-white focus:outline-none">
+              <option value="all">Todas as Categorias</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="hidden sm:block overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-4">Origem</th>
+                <th class="py-3 px-4">Tipo</th>
+                <th class="py-3 px-4">Descrição</th>
+                <th class="py-3 px-4">Categoria</th>
+                <th class="py-3 px-4">Data</th>
+                <th class="py-3 px-4 text-right">Valor</th>
+                <th class="py-3 px-4 text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="transactionTableBody" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody>
+          </table>
+        </div>
+
+        <div id="transactionMobileList" class="sm:hidden divide-y divide-slate-100 p-2"></div>
+
+        <div id="emptyStateTransactions" class="p-10 text-center flex flex-col items-center justify-center text-slate-400 hidden">
+          <i class="ph-bold ph-receipt text-4xl mb-2 text-slate-300"></i>
+          <p class="text-sm font-semibold text-slate-600">Nenhuma movimentação encontrada</p>
+          <p class="text-xs text-slate-400 mt-0.5">Cadastre uma nova transação ou altere o período do filtro.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ABA 2: LANÇAMENTOS AVULSOS (NOVA SEÇÃO DEDICADA) -->
+    <div id="viewAvulsos" class="flex flex-col gap-6 hidden">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Central de Lançamentos Avulsos & Extras</h3>
+          <p class="text-xs text-slate-500 mt-1">Registre entradas e saídas que fogem da rotina mensal (vendas, freelancers, doações, extras).</p>
+        </div>
+        <button onclick="openModal('avulso')" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition flex items-center gap-1.5 shadow-sm shadow-indigo-600/30">
+          <i class="ph-bold ph-plus text-base"></i>
+          <span>Novo Lançamento Avulso</span>
+        </button>
+      </div>
+
+      <!-- Atalhos Rápidos com 1 Clique -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <button onclick="quickAddAvulso('Venda Avulsa', 'Vendas', 'income')" class="p-4 bg-white border border-slate-200 hover:border-indigo-500 rounded-2xl text-left transition shadow-sm group">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2 group-hover:scale-110 transition">
+            <i class="ph-bold ph-tag text-lg"></i>
+          </div>
+          <span class="text-xs font-bold text-slate-800 block">Venda</span>
+          <span class="text-[10px] text-slate-400">Desapego, produto ou item</span>
+        </button>
+
+        <button onclick="quickAddAvulso('Trabalho Freelance', 'Freelance', 'income')" class="p-4 bg-white border border-slate-200 hover:border-indigo-500 rounded-2xl text-left transition shadow-sm group">
+          <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mb-2 group-hover:scale-110 transition">
+            <i class="ph-bold ph-laptop text-lg"></i>
+          </div>
+          <span class="text-xs font-bold text-slate-800 block">Freelance</span>
+          <span class="text-[10px] text-slate-400">Serviço ou projeto pontual</span>
+        </button>
+
+        <button onclick="quickAddAvulso('Doação Recebida', 'Doação', 'income')" class="p-4 bg-white border border-slate-200 hover:border-indigo-500 rounded-2xl text-left transition shadow-sm group">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center mb-2 group-hover:scale-110 transition">
+            <i class="ph-bold ph-heart text-lg"></i>
+          </div>
+          <span class="text-xs font-bold text-slate-800 block">Doação</span>
+          <span class="text-[10px] text-slate-400">Entrada beneficente ou ajuda</span>
+        </button>
+
+        <button onclick="quickAddAvulso('Bonificação / Extra', 'Bonificação / Extra', 'income')" class="p-4 bg-white border border-slate-200 hover:border-indigo-500 rounded-2xl text-left transition shadow-sm group">
+          <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center mb-2 group-hover:scale-110 transition">
+            <i class="ph-bold ph-gift text-lg"></i>
+          </div>
+          <span class="text-xs font-bold text-slate-800 block">Bonificação</span>
+          <span class="text-[10px] text-slate-400">Prêmio, gratificação ou comissão</span>
+        </button>
+
+        <button onclick="quickAddAvulso('Gasto Imprevisto', 'Gasto Imprevisto / Esporádico', 'expense')" class="p-4 bg-white border border-slate-200 hover:border-indigo-500 rounded-2xl text-left transition shadow-sm group col-span-2 sm:col-span-1">
+          <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center mb-2 group-hover:scale-110 transition">
+            <i class="ph-bold ph-warning-circle text-lg"></i>
+          </div>
+          <span class="text-xs font-bold text-slate-800 block">Imprevisto</span>
+          <span class="text-[10px] text-slate-400">Conserto, remédio ou urgência</span>
+        </button>
+      </div>
+
+      <!-- Resumo e Lista de Avulsos do Período -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+          <h4 class="text-sm font-bold text-slate-800">Lançamentos Avulsos no Período Selecionado</h4>
+          <span id="labelTotalAvulsosPeriod" class="text-xs font-bold text-indigo-600">Total: R$ 0,00</span>
+        </div>
+        <div id="containerAvulsosList" class="divide-y divide-slate-100">
+          <!-- Renderizado via JS -->
+        </div>
+        <div id="emptyStateAvulsos" class="p-8 text-center text-slate-400 hidden">
+          <i class="ph-bold ph-lightning-slash text-4xl mb-2 text-slate-300"></i>
+          <p class="text-xs font-semibold text-slate-600">Nenhum lançamento avulso neste período</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">Clique em um dos atalhos rápidos acima para registrar.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA 3: PROGRAMADAS & RECORRÊNCIAS -->
+    <div id="viewRecurring" class="flex flex-col gap-6 hidden">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Receitas e Despesas Programadas</h3>
+          <p class="text-xs text-slate-500 mt-1">Gerencie compromissos fixos e semanais com cálculo exato no calendário.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="fulfillAllPendingCurrentMonth()" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition flex items-center gap-1.5">
+            <i class="ph-bold ph-check-square-offset text-base"></i>
+            <span>Efetivar Todos Pendentes no Mês</span>
+          </button>
+          <button onclick="openRecurringModal()" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition flex items-center gap-1.5">
+            <i class="ph-bold ph-plus text-base"></i>
+            <span>Nova Programação</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="recurringListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+      <div id="emptyStateRecurring" class="bg-white p-12 rounded-2xl border border-slate-200 shadow-sm text-center flex flex-col items-center justify-center text-slate-400 hidden">
+        <i class="ph-bold ph-calendar-plus text-4xl mb-2 text-slate-300"></i>
+        <h4 class="text-sm font-semibold text-slate-700">Nenhum lançamento recorrente programado</h4>
+        <p class="text-xs text-slate-400 max-w-sm mt-1">Cadastre seus custos fixos ou semanais para efetivar com apenas 1 clique.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL: NOVA / EDITAR TRANSAÇÃO -->
+  <div id="modalTransaction" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="modalTransactionTitle" class="text-base font-bold text-slate-900">Nova Movimentação</h3>
+        <button onclick="closeModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <form id="formTransaction" onsubmit="saveTransaction(event)" class="flex flex-col gap-3.5">
+        <input type="hidden" id="transId">
+
+        <!-- Origem: Avulso vs Fixo/Recorrente -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Classificação da Transação</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center justify-center gap-2 p-2 rounded-xl border border-slate-200 cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 font-semibold text-xs">
+              <input type="radio" name="transOrigin" value="avulso" class="hidden" checked onchange="updateCategorySelect()">
+              <i class="ph-bold ph-lightning text-indigo-600"></i>
+              <span>Lançamento Avulso</span>
+            </label>
+            <label class="flex items-center justify-center gap-2 p-2 rounded-xl border border-slate-200 cursor-pointer has-[:checked]:bg-slate-100 has-[:checked]:border-slate-400 has-[:checked]:text-slate-800 font-semibold text-xs">
+              <input type="radio" name="transOrigin" value="fixo" class="hidden" onchange="updateCategorySelect()">
+              <i class="ph-bold ph-calendar text-slate-600"></i>
+              <span>Fixo / Regular</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Tipo de Movimentação</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 cursor-pointer has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-500 has-[:checked]:text-emerald-700 font-semibold text-xs">
+              <input type="radio" name="transType" value="income" class="hidden" checked onchange="updateCategorySelect()">
+              <i class="ph-bold ph-arrow-up-right text-emerald-600"></i>
+              <span>Receita</span>
+            </label>
+            <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 cursor-pointer has-[:checked]:bg-rose-50 has-[:checked]:border-rose-500 has-[:checked]:text-rose-700 font-semibold text-xs">
+              <input type="radio" name="transType" value="expense" class="hidden" onchange="updateCategorySelect()">
+              <i class="ph-bold ph-arrow-down-left text-rose-600"></i>
+              <span>Despesa</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Descrição</label>
+          <input type="text" id="transDesc" required placeholder="Ex: Venda de celular, Freelance de site, Doação..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Valor (R$)</label>
+            <input type="number" step="0.01" min="0.01" id="transAmount" required placeholder="0,00" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Data</label>
+            <input type="date" id="transDate" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Categoria</label>
+          <select id="transCategory" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none"></select>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 mt-2">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-sm">Salvar Registro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PROGRAMAR RECORRÊNCIA -->
+  <div id="modalRecurring" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="modalRecurringTitle" class="text-base font-bold text-slate-900">Programar Recorrência</h3>
+        <button onclick="closeRecurringModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <form id="formRecurring" onsubmit="saveRecurring(event)" class="flex flex-col gap-3.5">
+        <input type="hidden" id="recurId">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Tipo</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 cursor-pointer has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-500 has-[:checked]:text-emerald-700 font-semibold text-xs">
+              <input type="radio" name="recurType" value="income" class="hidden" checked onchange="updateRecurCategorySelect()">
+              <span>Receita</span>
+            </label>
+            <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 cursor-pointer has-[:checked]:bg-rose-50 has-[:checked]:border-rose-500 has-[:checked]:text-rose-700 font-semibold text-xs">
+              <input type="radio" name="recurType" value="expense" class="hidden" onchange="updateRecurCategorySelect()">
+              <span>Despesa</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Descrição</label>
+          <input type="text" id="recurDesc" required placeholder="Ex: Aluguel, Supermercado semanal..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Valor Unitário (R$)</label>
+            <input type="number" step="0.01" min="0.01" id="recurAmount" required placeholder="0,00" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Frequência</label>
+            <select id="recurFrequency" onchange="onFrequencyChange()" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none">
+              <option value="monthly">Mensal (Dia fixo)</option>
+              <option value="weekly">Semanal (Toda semana)</option>
+              <option value="biweekly">Quinzenal</option>
+              <option value="annual">Anual</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="fieldDueDay">
+          <label class="block text-xs font-bold text-slate-700 mb-1">Dia do Vencimento (1 a 31)</label>
+          <input type="number" id="recurDueDay" min="1" max="31" value="5" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
+        </div>
+
+        <div id="fieldWeekday" class="hidden">
+          <label class="block text-xs font-bold text-slate-700 mb-1">Dia da Semana</label>
+          <select id="recurWeekday" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none">
+            <option value="0">Domingo</option>
+            <option value="1">Segunda-feira</option>
+            <option value="2">Terça-feira</option>
+            <option value="3">Quarta-feira</option>
+            <option value="4">Quinta-feira</option>
+            <option value="5" selected>Sexta-feira</option>
+            <option value="6">Sábado</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Categoria</label>
+          <select id="recurCategory" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none"></select>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 mt-2">
+          <button type="button" onclick="closeRecurringModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-sm">Salvar Regra</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PERFIL DO USUÁRIO CONECTADO -->
+  <div id="modalUser" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4 text-center">
+      <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg mx-auto">
+        <i class="ph-bold ph-user-check"></i>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500">Conectado com:</p>
+        <p id="currentUserEmail" class="text-sm font-bold text-slate-900 break-all"></p>
+      </div>
+      <div class="flex flex-col gap-2 mt-2">
+        <button onclick="signOut()" class="w-full py-2.5 text-xs font-bold rounded-xl bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100">Sair da Conta</button>
+        <button onclick="closeUserModal()" class="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-800">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RESET DE DADOS -->
+  <div id="modalReset" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4 text-center">
+      <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-2xl">
+        <i class="ph-bold ph-warning"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-slate-900">Gerenciador de Reset</h3>
+        <p class="text-xs text-slate-500 mt-1">Deseja limpar todos os lançamentos da sua conta?</p>
+      </div>
+
+      <div class="flex flex-col gap-2 pt-2">
+        <button onclick="clearAllData()" class="w-full py-2.5 px-3 text-xs font-bold rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition">Zerar Minhas Transações</button>
+        <button onclick="closeResetModal()" class="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-800">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT PRINCIPAL -->
+  <script>
+    // CATEGORIAS EXPANDIDAS COM SUPORTE A AVULSOS
+    const CATEGORIES = {
+      income: [
+        'Vendas',
+        'Freelance',
+        'Doação',
+        'Bonificação / Extra',
+        'Salário',
+        'Serviços / Manutenção',
+        'Investimentos',
+        'Outros'
+      ],
+      expense: [
+        'Gasto Imprevisto / Esporádico',
+        'Moradia / Aluguel',
+        'Supermercado',
+        'Transporte / Combustível',
+        'Saúde',
+        'Educação',
+        'Lazer',
+        'Assinaturas',
+        'Outros'
+      ]
+    };
+
+    let transactions = [];
+    let recurringRules = [];
+    let currentPeriod = '';
+    let gateAuthMode = 'login';
+    let currentUser = null;
+    let realtimeChannel = null; // Variável global de controlo para prevenir duplicações
+
+    let chartHistory = null;
+    let chartCategory = null;
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      initCurrentPeriod();
+      populateCategoryDropdowns();
+      await checkAuthGate();
+    });
+
+    function initCurrentPeriod() {
+      const now = new Date();
+      const yr = now.getFullYear();
+      const mo = String(now.getMonth() + 1).padStart(2, '0');
+      currentPeriod = `${yr}-${mo}`;
+      document.getElementById('monthSelector').value = currentPeriod;
+    }
+
+    // --- CONTROLE DE LOGIN / SESSÃO ---
+    async function checkAuthGate() {
+      if (!window.supabaseClient) {
+        showAuthGate();
+        return;
+      }
+
+      try {
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        if (session && session.user) {
+          currentUser = session.user;
+          updateAuthHeader();
+          hideAuthGate();
+          await fetchCloudData();
+          subscribeRealtime();
+        } else {
+          showAuthGate();
+        }
+
+        window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
+          currentUser = session ? session.user : null;
+          updateAuthHeader();
+          if (currentUser) {
+            hideAuthGate();
+            await fetchCloudData();
+            subscribeRealtime();
+          } else {
+            showAuthGate();
+          }
+        });
+      } catch (err) {
+        console.error('Erro ao verificar sessão:', err);
+        showAuthGate();
+      }
+    }
+
+    function showAuthGate() {
+      document.getElementById('authGateOverlay').classList.remove('hidden');
+    }
+
+    function hideAuthGate() {
+      document.getElementById('authGateOverlay').classList.add('hidden');
+    }
+
+    function setGateAuthMode(mode) {
+      gateAuthMode = mode;
+      const tLog = document.getElementById('gateTabLogin');
+      const tReg = document.getElementById('gateTabRegister');
+      const submit = document.getElementById('btnGateAuthSubmit');
+
+      if (mode === 'login') {
+        tLog.className = 'flex-1 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition';
+        tReg.className = 'flex-1 py-1.5 rounded-lg text-slate-600 transition';
+        submit.textContent = 'Entrar no FinFlow';
+      } else {
+        tReg.className = 'flex-1 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition';
+        tLog.className = 'flex-1 py-1.5 rounded-lg text-slate-600 transition';
+        submit.textContent = 'Criar Minha Conta';
+      }
+    }
+
+    async function handleGateAuthSubmit(e) {
+      e.preventDefault();
+      if (!window.supabaseClient) {
+        alert('A chave do Supabase não foi inserida. Preencha a constante SUPABASE_ANON_KEY no arquivo index.html.');
+        return;
+      }
+
+      const email = document.getElementById('gateAuthEmail').value.trim();
+      const password = document.getElementById('gateAuthPassword').value;
+
+      try {
+        if (gateAuthMode === 'login') {
+          const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+        } else {
+          const { data, error } = await window.supabaseClient.auth.signUp({ email, password });
+          if (error) throw error;
+          alert('Conta criada com sucesso! Faça login para continuar.');
+          setGateAuthMode('login');
+        }
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      }
+    }
+
+    // --- CARREGAMENTO DE DADOS DO BANCO ---
+    async function fetchCloudData() {
+      if (!window.supabaseClient || !currentUser) return;
+      try {
+        const { data: txData } = await window.supabaseClient
+          .from('transactions')
+          .select('*')
+          .order('date', { ascending: false });
+
+        const { data: recData } = await window.supabaseClient
+          .from('recurring_rules')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        transactions = txData || [];
+        recurringRules = recData || [];
+        renderApp();
+      } catch (err) {
+        console.error('Erro ao buscar dados na nuvem:', err);
+      }
+    }
+
+    function subscribeRealtime() {
+      if (!window.supabaseClient || !currentUser) return;
+      if (realtimeChannel) return; // Evita criar callbacks duplicados se o canal já foi subscrito
+
+      realtimeChannel = window.supabaseClient
+        .channel('realtime_finflow')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => fetchCloudData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'recurring_rules' }, () => fetchCloudData())
+        .subscribe();
+    }
+
+    // --- DIAS DA SEMANA E RECORRÊNCIA ---
+    function getWeekdayDatesInMonth(year, month, weekday) {
+      const dates = [];
+      const date = new Date(year, month - 1, 1);
+      while (date.getMonth() === month - 1) {
+        if (date.getDay() === weekday) {
+          const yr = date.getFullYear();
+          const mo = String(date.getMonth() + 1).padStart(2, '0');
+          const dy = String(date.getDate()).padStart(2, '0');
+          dates.push(`${yr}-${mo}-${dy}`);
+        }
+        date.setDate(date.getDate() + 1);
+      }
+      return dates;
+    }
+
+    function getRecurrenceDatesForMonth(rule, year, month) {
+      if (rule.frequency === 'weekly') {
+        return getWeekdayDatesInMonth(year, month, parseInt(rule.weekday));
+      }
+      if (rule.frequency === 'biweekly') {
+        const d1 = String(rule.due_day || 5).padStart(2, '0');
+        const d2 = String(Math.min(30, (rule.due_day || 5) + 15)).padStart(2, '0');
+        const mo = String(month).padStart(2, '0');
+        return [`${year}-${mo}-${d1}`, `${year}-${mo}-${d2}`];
+      }
+      const d = String(rule.due_day || 5).padStart(2, '0');
+      const mo = String(month).padStart(2, '0');
+      return [`${year}-${mo}-${d}`];
+    }
+
+    // --- RENDERIZAÇÃO GERAL ---
+    function renderApp() {
+      renderKPIs();
+      renderTransactionHistory();
+      renderRecurringList();
+      renderAvulsosSection();
+      renderCharts();
+    }
+
+    function getFilteredTransactions() {
+      let filtered = [...transactions];
+      if (currentPeriod) {
+        filtered = filtered.filter(t => t.date && t.date.startsWith(currentPeriod));
+      }
+
+      const q = document.getElementById('searchFilter').value.toLowerCase().trim();
+      if (q) {
+        filtered = filtered.filter(t => t.description.toLowerCase().includes(q) || t.category.toLowerCase().includes(q));
+      }
+
+      const origin = document.getElementById('originFilter').value;
+      if (origin === 'avulso') {
+        filtered = filtered.filter(t => !t.recurring_id);
+      } else if (origin === 'recorrente') {
+        filtered = filtered.filter(t => !!t.recurring_id);
+      }
+
+      const type = document.getElementById('typeFilter').value;
+      if (type !== 'all') filtered = filtered.filter(t => t.type === type);
+
+      const cat = document.getElementById('categoryFilter').value;
+      if (cat !== 'all') filtered = filtered.filter(t => t.category === cat);
+
+      return filtered;
+    }
+
+    function renderKPIs() {
+      const generalBalance = transactions.reduce((acc, t) => acc + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0);
+      document.getElementById('cardTotalBalance').textContent = formatCurrency(generalBalance);
+
+      const balStatus = document.getElementById('cardBalanceStatus');
+      if (generalBalance > 0) {
+        balStatus.textContent = 'Saldo positivo consolidado';
+        balStatus.className = 'text-xs text-emerald-600 font-semibold mt-1';
+      } else if (generalBalance < 0) {
+        balStatus.textContent = 'Saldo devedor consolidado';
+        balStatus.className = 'text-xs text-rose-600 font-semibold mt-1';
+      } else {
+        balStatus.textContent = 'Saldo neutro / zerado';
+        balStatus.className = 'text-xs text-slate-500 mt-1';
+      }
+
+      const monthTx = currentPeriod ? transactions.filter(t => t.date.startsWith(currentPeriod)) : transactions;
+      const monthIncome = monthTx.filter(t => t.type === 'income').reduce((a, b) => a + Number(b.amount), 0);
+      const monthExpense = monthTx.filter(t => t.type === 'expense').reduce((a, b) => a + Number(b.amount), 0);
+
+      document.getElementById('cardTotalIncome').textContent = formatCurrency(monthIncome);
+      document.getElementById('cardIncomeCount').textContent = `${monthTx.filter(t => t.type === 'income').length} lançamentos`;
+
+      document.getElementById('cardTotalExpense').textContent = formatCurrency(monthExpense);
+      document.getElementById('cardExpenseCount').textContent = `${monthTx.filter(t => t.type === 'expense').length} lançamentos`;
+
+      let pendingExp = 0;
+      let pendingInc = 0;
+      let pendingCount = 0;
+
+      if (currentPeriod) {
+        const [y, m] = currentPeriod.split('-').map(Number);
+        recurringRules.forEach(rule => {
+          const expectedDates = getRecurrenceDatesForMonth(rule, y, m);
+          expectedDates.forEach(expectedDate => {
+            const already = transactions.some(t => t.recurring_id === rule.id && t.date === expectedDate);
+            if (!already) {
+              pendingCount++;
+              if (rule.type === 'expense') pendingExp += Number(rule.amount);
+              else pendingInc += Number(rule.amount);
+            }
+          });
+        });
+      }
+
+      document.getElementById('cardPendingExpense').textContent = formatCurrency(pendingExp);
+      document.getElementById('cardPendingIncome').textContent = formatCurrency(pendingInc);
+      document.getElementById('cardPendingText').textContent = `${pendingCount} lançamento(s) pendente(s)`;
+
+      const badge = document.getElementById('badgePendingCount');
+      if (pendingCount > 0) {
+        badge.textContent = pendingCount;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function renderTransactionHistory() {
+      const list = getFilteredTransactions();
+      const tBody = document.getElementById('transactionTableBody');
+      const mList = document.getElementById('transactionMobileList');
+      const empty = document.getElementById('emptyStateTransactions');
+      document.getElementById('countTransactionsBadge').textContent = list.length;
+
+      tBody.innerHTML = '';
+      mList.innerHTML = '';
+
+      if (list.length === 0) {
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      list.forEach(item => {
+        const isIncome = item.type === 'income';
+        const isAvulso = !item.recurring_id;
+        const formattedVal = `${isIncome ? '+' : '-'} ${formatCurrency(item.amount)}`;
+        const valColor = isIncome ? 'text-emerald-600' : 'text-rose-600';
+        const badgeBg = isIncome ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700';
+        const originBadge = isAvulso 
+          ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700"><i class="ph-bold ph-lightning"></i> Avulso</span>'
+          : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600"><i class="ph-bold ph-calendar"></i> Recorrente</span>';
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+        tr.innerHTML = `
+          <td class="py-3 px-4">${originBadge}</td>
+          <td class="py-3 px-4">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeBg}">
+              <i class="ph-bold ${isIncome ? 'ph-arrow-up-right' : 'ph-arrow-down-left'}"></i>
+              ${isIncome ? 'Receita' : 'Despesa'}
+            </span>
+          </td>
+          <td class="py-3 px-4 font-semibold text-slate-800">${escapeHtml(item.description)}</td>
+          <td class="py-3 px-4 text-slate-500">${escapeHtml(item.category)}</td>
+          <td class="py-3 px-4 text-slate-500">${formatDateDisplay(item.date)}</td>
+          <td class="py-3 px-4 text-right font-bold ${valColor}">${formattedVal}</td>
+          <td class="py-3 px-4 text-center">
+            <div class="flex items-center justify-center gap-1.5">
+              <button onclick="editTransaction('${item.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-brand-50" title="Editar">
+                <i class="ph-bold ph-pencil-simple text-sm"></i>
+              </button>
+              <button onclick="deleteTransaction('${item.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50" title="Excluir">
+                <i class="ph-bold ph-trash text-sm"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tBody.appendChild(tr);
+
+        const card = document.createElement('div');
+        card.className = 'p-3 flex items-center justify-between gap-3';
+        card.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm ${badgeBg}">
+              <i class="ph-bold ${isIncome ? 'ph-arrow-up-right' : 'ph-arrow-down-left'}"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <p class="text-xs font-bold text-slate-800 leading-tight">${escapeHtml(item.description)}</p>
+                ${isAvulso ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-600 font-bold">Avulso</span>' : ''}
+              </div>
+              <span class="text-[10px] text-slate-400">${escapeHtml(item.category)} • ${formatDateDisplay(item.date)}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold ${valColor}">${formattedVal}</span>
+            <button onclick="deleteTransaction('${item.id}')" class="text-slate-400 hover:text-rose-600 p-1">
+              <i class="ph-bold ph-trash text-sm"></i>
+            </button>
+          </div>
+        `;
+        mList.appendChild(card);
+      });
+    }
+
+    // --- RENDERIZAÇÃO DA SEÇÃO AVULSOS ---
+    function renderAvulsosSection() {
+      const avulsos = transactions.filter(t => !t.recurring_id && (!currentPeriod || t.date.startsWith(currentPeriod)));
+      const container = document.getElementById('containerAvulsosList');
+      const empty = document.getElementById('emptyStateAvulsos');
+      const badge = document.getElementById('badgeAvulsosCount');
+      const labelTotal = document.getElementById('labelTotalAvulsosPeriod');
+
+      badge.textContent = avulsos.length;
+      container.innerHTML = '';
+
+      const totalBalanceAvulso = avulsos.reduce((acc, t) => acc + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0);
+      labelTotal.textContent = `Saldo Avulso: ${formatCurrency(totalBalanceAvulso)}`;
+
+      if (avulsos.length === 0) {
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      avulsos.forEach(item => {
+        const isIncome = item.type === 'income';
+        const el = document.createElement('div');
+        el.className = 'py-3 flex items-center justify-between gap-3';
+        el.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl ${isIncome ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'} flex items-center justify-center font-bold text-sm">
+              <i class="ph-bold ${isIncome ? 'ph-tag' : 'ph-warning-circle'}"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-slate-800">${escapeHtml(item.description)}</p>
+              <p class="text-[10px] text-slate-400">${escapeHtml(item.category)} • ${formatDateDisplay(item.date)}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-bold ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">${isIncome ? '+' : '-'} ${formatCurrency(item.amount)}</span>
+            <button onclick="editTransaction('${item.id}')" class="text-slate-400 hover:text-indigo-600 p-1" title="Editar">
+              <i class="ph-bold ph-pencil-simple text-sm"></i>
+            </button>
+            <button onclick="deleteTransaction('${item.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="Excluir">
+              <i class="ph-bold ph-trash text-sm"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(el);
+      });
+    }
+
+    function quickAddAvulso(defaultDesc, defaultCat, type) {
+      openModal('avulso');
+      document.querySelector(`input[name="transType"][value="${type}"]`).checked = true;
+      updateCategorySelect();
+      document.getElementById('transDesc').value = defaultDesc;
+      document.getElementById('transCategory').value = defaultCat;
+      document.getElementById('transAmount').focus();
+    }
+
+    function renderRecurringList() {
+      const container = document.getElementById('recurringListContainer');
+      const empty = document.getElementById('emptyStateRecurring');
+      container.innerHTML = '';
+
+      if (recurringRules.length === 0) {
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      const [y, m] = currentPeriod ? currentPeriod.split('-').map(Number) : [new Date().getFullYear(), new Date().getMonth() + 1];
+
+      recurringRules.forEach(rule => {
+        const isIncome = rule.type === 'income';
+        const expectedDates = getRecurrenceDatesForMonth(rule, y, m);
+        
+        let fulfilledCount = 0;
+        const occurrencesHtml = expectedDates.map(dateStr => {
+          const already = transactions.some(t => t.recurring_id === rule.id && t.date === dateStr);
+          if (already) fulfilledCount++;
+          const dayNum = dateStr.split('-')[2];
+          return `
+            <button onclick="${already ? '' : `fulfillSingleOccurrence('${rule.id}', '${dateStr}')`}" 
+                    class="px-2 py-1 rounded text-[11px] font-semibold border transition ${already ? 'bg-emerald-50 border-emerald-200 text-emerald-700 cursor-default' : 'bg-white border-slate-200 hover:bg-brand-50 hover:border-brand-500 text-slate-700'}">
+              ${already ? '✓' : '+'} Dia ${dayNum}
+            </button>
+          `;
+        }).join('');
+
+        const totalExpected = expectedDates.length;
+        const allDone = fulfilledCount >= totalExpected;
+
+        const card = document.createElement('div');
+        card.className = 'bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between gap-4';
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isIncome ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'} uppercase">
+                ${isIncome ? 'Receita' : 'Despesa'} • ${translateFreq(rule.frequency)}
+              </span>
+              <div class="flex items-center gap-1">
+                <button onclick="editRecurring('${rule.id}')" class="p-1 text-slate-400 hover:text-brand-600 rounded" title="Editar">
+                  <i class="ph-bold ph-pencil-simple text-sm"></i>
+                </button>
+                <button onclick="deleteRecurring('${rule.id}')" class="p-1 text-slate-400 hover:text-rose-600 rounded" title="Excluir">
+                  <i class="ph-bold ph-trash text-sm"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-2">
+              <h4 class="text-sm font-bold text-slate-900">${escapeHtml(rule.description)}</h4>
+              <p class="text-xs text-slate-500 mt-0.5">${escapeHtml(rule.category)}</p>
+            </div>
+
+            <div class="mt-3 flex items-baseline justify-between border-b border-slate-100 pb-2">
+              <span class="text-xs text-slate-400">Valor Unitário:</span>
+              <span class="text-base font-black ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">${formatCurrency(rule.amount)}</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between text-xs mb-1.5">
+              <span class="font-semibold text-slate-700">Ocorrências no Mês:</span>
+              <span class="text-[11px] font-bold ${allDone ? 'text-emerald-600' : 'text-amber-600'}">${fulfilledCount} de ${totalExpected} lançadas</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              ${occurrencesHtml}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderCharts() {
+      const ctxH = document.getElementById('chartHistory').getContext('2d');
+      const monthsBack = 6;
+      const labels = [];
+      const dataInc = [];
+      const dataExp = [];
+
+      const now = new Date();
+      for (let i = monthsBack - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const yr = d.getFullYear();
+        const mo = String(d.getMonth() + 1).padStart(2, '0');
+        const key = `${yr}-${mo}`;
+        labels.push(d.toLocaleString('pt-BR', { month: 'short' }) + '/' + String(yr).slice(-2));
+
+        const monthTxs = transactions.filter(t => t.date && t.date.startsWith(key));
+        dataInc.push(monthTxs.filter(t => t.type === 'income').reduce((a, b) => a + Number(b.amount), 0));
+        dataExp.push(monthTxs.filter(t => t.type === 'expense').reduce((a, b) => a + Number(b.amount), 0));
+      }
+
+      if (chartHistory) chartHistory.destroy();
+      chartHistory = new Chart(ctxH, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Receitas', data: dataInc, backgroundColor: '#10b981', borderRadius: 4 },
+            { label: 'Despesas', data: dataExp, backgroundColor: '#f43f5e', borderRadius: 4 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+          scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+        }
+      });
+
+      const ctxC = document.getElementById('chartCategory').getContext('2d');
+      const activeExpenses = currentPeriod ? transactions.filter(t => t.type === 'expense' && t.date.startsWith(currentPeriod)) : transactions.filter(t => t.type === 'expense');
+      const catMap = {};
+      activeExpenses.forEach(t => { catMap[t.category] = (catMap[t.category] || 0) + Number(t.amount); });
+
+      const catLabels = Object.keys(catMap);
+      const catValues = Object.values(catMap);
+      const noDataAlert = document.getElementById('noChartCategory');
+
+      if (chartCategory) chartCategory.destroy();
+
+      if (catValues.length === 0) {
+        noDataAlert.classList.remove('hidden');
+      } else {
+        noDataAlert.classList.add('hidden');
+        chartCategory = new Chart(ctxC, {
+          type: 'doughnut',
+          data: {
+            labels: catLabels,
+            datasets: [{
+              data: catValues,
+              backgroundColor: ['#f43f5e', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b']
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+            cutout: '70%'
+          }
+        });
+      }
+    }
+
+    // --- OPERAÇÕES CRUD TRANSAÇÕES ---
+    async function saveTransaction(e) {
+      e.preventDefault();
+      const id = document.getElementById('transId').value;
+      const type = document.querySelector('input[name="transType"]:checked').value;
+      const description = document.getElementById('transDesc').value.trim();
+      const amount = parseFloat(document.getElementById('transAmount').value);
+      const date = document.getElementById('transDate').value;
+      const category = document.getElementById('transCategory').value;
+
+      const newTx = {
+        type,
+        description,
+        amount,
+        date,
+        category,
+        user_id: currentUser.id
+      };
+
+      if (id) {
+        await window.supabaseClient.from('transactions').update(newTx).eq('id', id);
+      } else {
+        await window.supabaseClient.from('transactions').insert([newTx]);
+      }
+      await fetchCloudData();
+      closeModal();
+    }
+
+    async function deleteTransaction(id) {
+      if (!confirm('Deseja realmente excluir este lançamento?')) return;
+      await window.supabaseClient.from('transactions').delete().eq('id', id);
+      await fetchCloudData();
+    }
+
+    function editTransaction(id) {
+      const item = transactions.find(t => t.id === id);
+      if (!item) return;
+
+      document.getElementById('modalTransactionTitle').textContent = 'Editar Movimentação';
+      document.getElementById('transId').value = item.id;
+      
+      const originVal = item.recurring_id ? 'fixo' : 'avulso';
+      document.querySelector(`input[name="transOrigin"][value="${originVal}"]`).checked = true;
+
+      document.querySelector(`input[name="transType"][value="${item.type}"]`).checked = true;
+      updateCategorySelect();
+
+      document.getElementById('transDesc').value = item.description;
+      document.getElementById('transAmount').value = item.amount;
+      document.getElementById('transDate').value = item.date;
+      document.getElementById('transCategory').value = item.category;
+
+      document.getElementById('modalTransaction').classList.remove('hidden');
+    }
+
+    // --- OPERAÇÕES RECORRÊNCIA ---
+    async function saveRecurring(e) {
+      e.preventDefault();
+      const id = document.getElementById('recurId').value;
+      const type = document.querySelector('input[name="recurType"]:checked').value;
+      const description = document.getElementById('recurDesc').value.trim();
+      const amount = parseFloat(document.getElementById('recurAmount').value);
+      const frequency = document.getElementById('recurFrequency').value;
+      const due_day = parseInt(document.getElementById('recurDueDay').value) || 5;
+      const weekday = parseInt(document.getElementById('recurWeekday').value) || 0;
+      const category = document.getElementById('recurCategory').value;
+
+      const rule = {
+        type,
+        description,
+        amount,
+        frequency,
+        due_day,
+        weekday,
+        category,
+        user_id: currentUser.id
+      };
+
+      if (id) {
+        await window.supabaseClient.from('recurring_rules').update(rule).eq('id', id);
+      } else {
+        await window.supabaseClient.from('recurring_rules').insert([rule]);
+      }
+      await fetchCloudData();
+      closeRecurringModal();
+    }
+
+    async function deleteRecurring(id) {
+      if (!confirm('Deseja excluir esta regra de recorrência?')) return;
+      await window.supabaseClient.from('recurring_rules').delete().eq('id', id);
+      await fetchCloudData();
+    }
+
+    function editRecurring(id) {
+      const item = recurringRules.find(r => r.id === id);
+      if (!item) return;
+
+      document.getElementById('modalRecurringTitle').textContent = 'Editar Programação';
+      document.getElementById('recurId').value = item.id;
+      document.querySelector(`input[name="recurType"][value="${item.type}"]`).checked = true;
+      updateRecurCategorySelect();
+
+      document.getElementById('recurDesc').value = item.description;
+      document.getElementById('recurAmount').value = item.amount;
+      document.getElementById('recurFrequency').value = item.frequency;
+      document.getElementById('recurDueDay').value = item.due_day || 5;
+      document.getElementById('recurWeekday').value = item.weekday || 0;
+      document.getElementById('recurCategory').value = item.category;
+
+      onFrequencyChange();
+      document.getElementById('modalRecurring').classList.remove('hidden');
+    }
+
+    async function fulfillSingleOccurrence(ruleId, dateStr) {
+      const rule = recurringRules.find(r => r.id === ruleId);
+      if (!rule) return;
+
+      const newTx = {
+        description: rule.description,
+        amount: rule.amount,
+        type: rule.type,
+        category: rule.category,
+        date: dateStr,
+        recurring_id: rule.id,
+        user_id: currentUser.id
+      };
+
+      await window.supabaseClient.from('transactions').insert([newTx]);
+      await fetchCloudData();
+    }
+
+    async function fulfillAllPendingCurrentMonth() {
+      if (!currentPeriod) return alert('Selecione um mês específico para efetivar as programações.');
+      const [y, m] = currentPeriod.split('-').map(Number);
+      const toInsert = [];
+
+      recurringRules.forEach(rule => {
+        const expectedDates = getRecurrenceDatesForMonth(rule, y, m);
+        expectedDates.forEach(expectedDate => {
+          const already = transactions.some(t => t.recurring_id === rule.id && t.date === expectedDate);
+          if (!already) {
+            toInsert.push({
+              description: rule.description,
+              amount: rule.amount,
+              type: rule.type,
+              category: rule.category,
+              date: expectedDate,
+              recurring_id: rule.id,
+              user_id: currentUser.id
+            });
+          }
+        });
+      });
+
+      if (toInsert.length === 0) {
+        alert('Não há ocorrências pendentes para efetivar neste mês.');
+        return;
+      }
+
+      await window.supabaseClient.from('transactions').insert(toInsert);
+      await fetchCloudData();
+      alert(`${toInsert.length} ocorrência(s) efetivada(s) com sucesso!`);
+    }
+
+    // --- CONTROLE DE USUÁRIO / MODAIS ---
+    function handleAuthClick() {
+      if (currentUser) {
+        document.getElementById('currentUserEmail').textContent = currentUser.email;
+        document.getElementById('modalUser').classList.remove('hidden');
+      } else {
+        showAuthGate();
+      }
+    }
+
+    function closeUserModal() {
+      document.getElementById('modalUser').classList.add('hidden');
+    }
+
+    async function signOut() {
+      if (realtimeChannel && window.supabaseClient) {
+        window.supabaseClient.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
+      if (window.supabaseClient) await window.supabaseClient.auth.signOut();
+      currentUser = null;
+      closeUserModal();
+      transactions = [];
+      recurringRules = [];
+      renderApp();
+      showAuthGate();
+    }
+
+    function updateAuthHeader() {
+      const label = document.getElementById('labelAuthStatus');
+      if (currentUser) {
+        label.textContent = currentUser.email.split('@')[0];
+      } else {
+        label.textContent = 'Minha Conta';
+      }
+    }
+
+    function switchTab(tab) {
+      const vD = document.getElementById('viewDashboard');
+      const vA = document.getElementById('viewAvulsos');
+      const vR = document.getElementById('viewRecurring');
+
+      const tD = document.getElementById('tabDash');
+      const tA = document.getElementById('tabAvulsos');
+      const tR = document.getElementById('tabRecur');
+
+      vD.classList.add('hidden');
+      vA.classList.add('hidden');
+      vR.classList.add('hidden');
+
+      tD.className = 'px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2';
+      tA.className = 'px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2';
+      tR.className = 'px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-2';
+
+      if (tab === 'dashboard') {
+        vD.classList.remove('hidden');
+        tD.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-brand-50 text-brand-700 border border-brand-200 flex items-center gap-2';
+      } else if (tab === 'avulsos') {
+        vA.classList.remove('hidden');
+        tA.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-2';
+      } else {
+        vR.classList.remove('hidden');
+        tR.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-brand-50 text-brand-700 border border-brand-200 flex items-center gap-2';
+      }
+    }
+
+    function changeMonth(delta) {
+      if (!currentPeriod) initCurrentPeriod();
+      const [y, m] = currentPeriod.split('-').map(Number);
+      const target = new Date(y, m - 1 + delta, 1);
+      const yr = target.getFullYear();
+      const mo = String(target.getMonth() + 1).padStart(2, '0');
+      currentPeriod = `${yr}-${mo}`;
+      document.getElementById('monthSelector').value = currentPeriod;
+      renderApp();
+    }
+
+    function onMonthChange() {
+      currentPeriod = document.getElementById('monthSelector').value;
+      renderApp();
+    }
+
+    function setAllPeriod() {
+      currentPeriod = '';
+      document.getElementById('monthSelector').value = '';
+      renderApp();
+    }
+
+    function openModal(defaultOrigin = 'fixo') {
+      document.getElementById('modalTransactionTitle').textContent = 'Nova Movimentação';
+      document.getElementById('transId').value = '';
+      document.getElementById('formTransaction').reset();
+      
+      const originRadio = document.querySelector(`input[name="transOrigin"][value="${defaultOrigin}"]`);
+      if (originRadio) originRadio.checked = true;
+
+      document.getElementById('transDate').value = new Date().toISOString().split('T')[0];
+      updateCategorySelect();
+      document.getElementById('modalTransaction').classList.remove('hidden');
+    }
+
+    function closeModal() { document.getElementById('modalTransaction').classList.add('hidden'); }
+
+    function openRecurringModal() {
+      document.getElementById('modalRecurringTitle').textContent = 'Programar Recorrência';
+      document.getElementById('recurId').value = '';
+      document.getElementById('formRecurring').reset();
+      onFrequencyChange();
+      updateRecurCategorySelect();
+      document.getElementById('modalRecurring').classList.remove('hidden');
+    }
+
+    function closeRecurringModal() { document.getElementById('modalRecurring').classList.add('hidden'); }
+
+    function onFrequencyChange() {
+      const freq = document.getElementById('recurFrequency').value;
+      const fDue = document.getElementById('fieldDueDay');
+      const fWeek = document.getElementById('fieldWeekday');
+
+      if (freq === 'weekly') {
+        fDue.classList.add('hidden');
+        fWeek.classList.remove('hidden');
+      } else {
+        fDue.classList.remove('hidden');
+        fWeek.classList.add('hidden');
+      }
+    }
+
+    function openResetModal() { document.getElementById('modalReset').classList.remove('hidden'); }
+    function closeResetModal() { document.getElementById('modalReset').classList.add('hidden'); }
+
+    async function clearAllData() {
+      if (!confirm('Deseja apagar definitivamente todos os seus lançamentos?')) return;
+      await window.supabaseClient.from('transactions').delete().eq('user_id', currentUser.id);
+      await window.supabaseClient.from('recurring_rules').delete().eq('user_id', currentUser.id);
+      await fetchCloudData();
+      closeResetModal();
+    }
+
+    function populateCategoryDropdowns() {
+      const catFilter = document.getElementById('categoryFilter');
+      const allCats = [...new Set([...CATEGORIES.income, ...CATEGORIES.expense])];
+      allCats.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        catFilter.appendChild(opt);
+      });
+      updateCategorySelect();
+      updateRecurCategorySelect();
+    }
+
+    function updateCategorySelect() {
+      const type = document.querySelector('input[name="transType"]:checked')?.value || 'income';
+      const select = document.getElementById('transCategory');
+      select.innerHTML = '';
+      CATEGORIES[type].forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+    }
+
+    function updateRecurCategorySelect() {
+      const type = document.querySelector('input[name="recurType"]:checked')?.value || 'income';
+      const select = document.getElementById('recurCategory');
+      select.innerHTML = '';
+      CATEGORIES[type].forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+    }
+
+    function exportCSV() {
+      if (transactions.length === 0) return alert('Sem dados para exportar.');
+      let csv = 'ID;Tipo;Classificacao;Descricao;Categoria;Data;Valor\n';
+      transactions.forEach(t => {
+        const orig = t.recurring_id ? 'Recorrente' : 'Avulso';
+        csv += `"${t.id}";"${t.type}";"${orig}";"${t.description}";"${t.category}";"${t.date}";"${t.amount}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `finflow_export_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+    }
+
+    function formatCurrency(v) {
+      return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function formatDateDisplay(d) {
+      if (!d) return '';
+      const [yr, mo, dy] = d.split('-');
+      return `${dy}/${mo}/${yr}`;
+    }
+
+    function translateFreq(f) {
+      const map = { weekly: 'Semanal', biweekly: 'Quinzenal', monthly: 'Mensal', annual: 'Anual' };
+      return map[f] || f;
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[tag] || tag));
+    }
+  </script>
+</body>
+</html>
