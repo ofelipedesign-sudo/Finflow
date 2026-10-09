@@ -43,7 +43,7 @@
   <!-- CREDENCIAIS GLOBAIS FIXAS DO PROJETO SUPABASE -->
   <script>
     const SUPABASE_PROJECT_URL = 'https://mrlnczxqhdhptcdojwgh.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_YsuEsBHFtQTprmSPVMlqdw_gTt_UHRj'; // <-- Mantida intacta
+    const SUPABASE_ANON_KEY = 'sb_publishable_YsuEsBHFtQTprmSPVMlqdw_gTt_UHRj'; // Mantida intacta
 
     window.supabaseClient = (window.supabase && SUPABASE_ANON_KEY !== 'COLE_AQUI_SUA_CHAVE_ANON_PUBLIC') 
       ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY) 
@@ -62,13 +62,11 @@
         <p class="text-xs text-slate-500 mt-1">Acesse com seu e-mail para carregar suas finanças.</p>
       </div>
 
-      <!-- Abas Entrar / Criar Conta -->
       <div class="flex border border-slate-200 rounded-xl p-1 bg-slate-100 text-xs font-semibold">
         <button type="button" id="gateTabLogin" onclick="setGateAuthMode('login')" class="flex-1 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition">Entrar</button>
         <button type="button" id="gateTabRegister" onclick="setGateAuthMode('register')" class="flex-1 py-1.5 rounded-lg text-slate-600 transition">Criar Conta</button>
       </div>
 
-      <!-- Formulário de Autenticação -->
       <form id="formGateAuth" onsubmit="handleGateAuthSubmit(event)" class="flex flex-col gap-3">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">E-mail</label>
@@ -82,7 +80,6 @@
 
         <button type="submit" id="btnGateAuthSubmit" class="w-full mt-2 py-2.5 text-xs font-bold rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition">Entrar no FinFlow</button>
       </form>
-
     </div>
   </div>
 
@@ -104,6 +101,35 @@
 
       <!-- Ações do Topo -->
       <div class="flex items-center flex-wrap gap-2.5">
+
+        <!-- Ícone Pequeno e Discreto de Notificações -->
+        <div class="relative">
+          <button id="btnBell" onclick="toggleNotificationsDropdown()" class="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition" title="Notificações Automáticas">
+            <i class="ph-bold ph-bell text-lg"></i>
+            <span id="bellBadge" class="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white hidden"></span>
+          </button>
+
+          <!-- Dropdown de Notificações -->
+          <div id="notificationsDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-100 py-3 z-50 animate-in fade-in duration-150">
+            <div class="px-4 pb-2 border-b border-slate-100 flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <i class="ph-bold ph-lightning text-emerald-600 text-sm"></i>
+                <h4 class="text-xs font-bold text-slate-800">Automações & Entradas Recorrentes</h4>
+              </div>
+              <button onclick="markAllNotificationsRead()" class="text-[10px] text-slate-400 hover:text-brand-600 font-semibold transition">Limpar avisos</button>
+            </div>
+            
+            <div id="notificationsList" class="max-h-72 overflow-y-auto divide-y divide-slate-50 custom-scrollbar px-1">
+              <!-- Renderizado via JS -->
+            </div>
+
+            <div id="emptyNotifications" class="p-6 text-center text-slate-400 hidden">
+              <i class="ph-bold ph-bell-simple-slash text-2xl text-slate-300 mb-1"></i>
+              <p class="text-xs font-medium">Nenhum lançamento automático recente.</p>
+            </div>
+          </div>
+        </div>
+
         <button onclick="handleAuthClick()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
           <i id="authIcon" class="ph-bold ph-user-check text-base text-emerald-600"></i>
           <span id="labelAuthStatus">Minha Conta</span>
@@ -119,13 +145,11 @@
           <span class="hidden sm:inline">Exportar CSV</span>
         </button>
 
-        <!-- Botão Novo Lançamento Avulso Rápido -->
         <button onclick="openModal('avulso')" class="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition shadow-sm">
           <i class="ph-bold ph-lightning text-base text-indigo-600"></i>
           <span>Lançar Avulso</span>
         </button>
 
-        <!-- Botão Nova Movimentação Normal -->
         <button onclick="openModal()" class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition shadow-sm shadow-brand-600/30">
           <i class="ph-bold ph-plus text-base"></i>
           <span>Nova Movimentação</span>
@@ -155,7 +179,6 @@
         </button>
       </div>
 
-      <!-- Filtro de Mês/Período -->
       <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm text-sm">
         <button onclick="changeMonth(-1)" class="p-1 text-slate-500 hover:text-slate-800 rounded hover:bg-slate-100" title="Mês anterior">
           <i class="ph-bold ph-caret-left"></i>
@@ -171,7 +194,6 @@
     <!-- ABA 1: PAINEL & TRANSAÇÕES -->
     <div id="viewDashboard" class="flex flex-col gap-6">
 
-      <!-- Cards de Indicadores (KPIs) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
           <div class="flex items-center justify-between">
@@ -233,7 +255,6 @@
         </div>
       </div>
 
-      <!-- Gráficos Visuais -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div class="flex items-center justify-between mb-4">
@@ -299,7 +320,7 @@
                 <th class="py-3 px-4">Tipo</th>
                 <th class="py-3 px-4">Descrição</th>
                 <th class="py-3 px-4">Categoria</th>
-                <th class="py-3 px-4">Data</th>
+                <th class="py-3 px-4">Data / Hora de Registro</th>
                 <th class="py-3 px-4 text-right">Valor</th>
                 <th class="py-3 px-4 text-center">Ações</th>
               </tr>
@@ -319,7 +340,7 @@
 
     </div>
 
-    <!-- ABA 2: LANÇAMENTOS AVULSOS (NOVA SEÇÃO DEDICADA) -->
+    <!-- ABA 2: LANÇAMENTOS AVULSOS -->
     <div id="viewAvulsos" class="flex flex-col gap-6 hidden">
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -332,7 +353,6 @@
         </button>
       </div>
 
-      <!-- Atalhos Rápidos com 1 Clique -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <button onclick="quickAddAvulso('Venda Avulsa', 'Vendas', 'income')" class="p-4 bg-white border border-slate-200 hover:border-indigo-500 rounded-2xl text-left transition shadow-sm group">
           <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2 group-hover:scale-110 transition">
@@ -375,15 +395,12 @@
         </button>
       </div>
 
-      <!-- Resumo e Lista de Avulsos do Período -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
           <h4 class="text-sm font-bold text-slate-800">Lançamentos Avulsos no Período Selecionado</h4>
           <span id="labelTotalAvulsosPeriod" class="text-xs font-bold text-indigo-600">Total: R$ 0,00</span>
         </div>
-        <div id="containerAvulsosList" class="divide-y divide-slate-100">
-          <!-- Renderizado via JS -->
-        </div>
+        <div id="containerAvulsosList" class="divide-y divide-slate-100"></div>
         <div id="emptyStateAvulsos" class="p-8 text-center text-slate-400 hidden">
           <i class="ph-bold ph-lightning-slash text-4xl mb-2 text-slate-300"></i>
           <p class="text-xs font-semibold text-slate-600">Nenhum lançamento avulso neste período</p>
@@ -435,7 +452,6 @@
       <form id="formTransaction" onsubmit="saveTransaction(event)" class="flex flex-col gap-3.5">
         <input type="hidden" id="transId">
 
-        <!-- Origem: Avulso vs Fixo/Recorrente -->
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Classificação da Transação</label>
           <div class="grid grid-cols-2 gap-2">
@@ -470,7 +486,7 @@
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Descrição</label>
-          <input type="text" id="transDesc" required placeholder="Ex: Venda de celular, Freelance de site, Doação..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
+          <input type="text" id="transDesc" required placeholder="Ex: Venda de peça, Freelance, Doação..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -479,7 +495,7 @@
             <input type="number" step="0.01" min="0.01" id="transAmount" required placeholder="0,00" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Data</label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Data Competência</label>
             <input type="date" id="transDate" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none">
           </div>
         </div>
@@ -613,7 +629,6 @@
 
   <!-- SCRIPT PRINCIPAL -->
   <script>
-    // CATEGORIAS EXPANDIDAS COM SUPORTE A AVULSOS
     const CATEGORIES = {
       income: [
         'Vendas',
@@ -643,7 +658,8 @@
     let currentPeriod = '';
     let gateAuthMode = 'login';
     let currentUser = null;
-    let realtimeChannel = null; // Variável global de controlo para prevenir duplicações
+    let realtimeChannel = null;
+    let readNotifications = JSON.parse(localStorage.getItem('finflow_read_notifications') || '[]');
 
     let chartHistory = null;
     let chartCategory = null;
@@ -652,6 +668,15 @@
       initCurrentPeriod();
       populateCategoryDropdowns();
       await checkAuthGate();
+
+      // Fechar dropdown de notificações ao clicar fora
+      document.addEventListener('click', (e) => {
+        const dd = document.getElementById('notificationsDropdown');
+        const btn = document.getElementById('btnBell');
+        if (!dd.contains(e.target) && !btn.contains(e.target)) {
+          dd.classList.add('hidden');
+        }
+      });
     });
 
     function initCurrentPeriod() {
@@ -726,7 +751,7 @@
     async function handleGateAuthSubmit(e) {
       e.preventDefault();
       if (!window.supabaseClient) {
-        alert('A chave do Supabase não foi inserida. Preencha a constante SUPABASE_ANON_KEY no arquivo index.html.');
+        alert('A chave do Supabase não foi inserida no código.');
         return;
       }
 
@@ -755,7 +780,7 @@
         const { data: txData } = await window.supabaseClient
           .from('transactions')
           .select('*')
-          .order('date', { ascending: false });
+          .order('created_at', { ascending: false });
 
         const { data: recData } = await window.supabaseClient
           .from('recurring_rules')
@@ -772,13 +797,79 @@
 
     function subscribeRealtime() {
       if (!window.supabaseClient || !currentUser) return;
-      if (realtimeChannel) return; // Evita criar callbacks duplicados se o canal já foi subscrito
+      if (realtimeChannel) return;
 
       realtimeChannel = window.supabaseClient
         .channel('realtime_finflow')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => fetchCloudData())
         .on('postgres_changes', { event: '*', schema: 'public', table: 'recurring_rules' }, () => fetchCloudData())
         .subscribe();
+    }
+
+    // --- SISTEMA DE NOTIFICAÇÕES (APENAS ENTRADAS AUTOMÁTICAS) ---
+    function toggleNotificationsDropdown() {
+      const dd = document.getElementById('notificationsDropdown');
+      dd.classList.toggle('hidden');
+    }
+
+    function renderNotifications() {
+      // Filtrar apenas o que veio de automação/recorrência (possui recurring_id)
+      const autoTransactions = transactions.filter(t => t.recurring_id);
+      const listContainer = document.getElementById('notificationsList');
+      const emptyState = document.getElementById('emptyNotifications');
+      const badge = document.getElementById('bellBadge');
+
+      listContainer.innerHTML = '';
+
+      if (autoTransactions.length === 0) {
+        emptyState.classList.remove('hidden');
+        badge.classList.add('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      // Verifica se há novas não lidas
+      const unreadCount = autoTransactions.filter(t => !readNotifications.includes(t.id)).length;
+      if (unreadCount > 0) {
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+
+      autoTransactions.slice(0, 15).forEach(item => {
+        const isIncome = item.type === 'income';
+        const isUnread = !readNotifications.includes(item.id);
+        const dateHourDisplay = formatFullDateTime(item.created_at || item.date);
+
+        const row = document.createElement('div');
+        row.className = `p-3 flex items-start gap-3 transition ${isUnread ? 'bg-emerald-50/40' : 'hover:bg-slate-50'}`;
+        row.innerHTML = `
+          <div class="w-7 h-7 rounded-lg mt-0.5 flex-shrink-0 flex items-center justify-center text-xs font-bold ${isIncome ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+            <i class="ph-bold ${isIncome ? 'ph-arrow-up-right' : 'ph-arrow-down-left'}"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-1">
+              <span class="text-[10px] font-bold uppercase tracking-wider ${isIncome ? 'text-emerald-700' : 'text-rose-700'}">
+                ${isIncome ? 'Receita Recorrente' : 'Despesa Recorrente'}
+              </span>
+              <span class="text-[10px] text-slate-400 font-medium">${dateHourDisplay}</span>
+            </div>
+            <p class="text-xs font-bold text-slate-800 truncate mt-0.5">${escapeHtml(item.description)}</p>
+            <div class="flex items-center justify-between mt-1 text-[11px]">
+              <span class="text-slate-500">${escapeHtml(item.category)}</span>
+              <span class="font-bold ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">${isIncome ? '+' : '-'} ${formatCurrency(item.amount)}</span>
+            </div>
+          </div>
+        `;
+        listContainer.appendChild(row);
+      });
+    }
+
+    function markAllNotificationsRead() {
+      const autoIds = transactions.filter(t => t.recurring_id).map(t => t.id);
+      readNotifications = Array.from(new Set([...readNotifications, ...autoIds]));
+      localStorage.setItem('finflow_read_notifications', JSON.stringify(readNotifications));
+      renderNotifications();
     }
 
     // --- DIAS DA SEMANA E RECORRÊNCIA ---
@@ -819,6 +910,7 @@
       renderRecurringList();
       renderAvulsosSection();
       renderCharts();
+      renderNotifications();
     }
 
     function getFilteredTransactions() {
@@ -930,7 +1022,9 @@
         const badgeBg = isIncome ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700';
         const originBadge = isAvulso 
           ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700"><i class="ph-bold ph-lightning"></i> Avulso</span>'
-          : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600"><i class="ph-bold ph-calendar"></i> Recorrente</span>';
+          : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700"><i class="ph-bold ph-robot"></i> Automático</span>';
+
+        const dateHourDisplay = formatFullDateTime(item.created_at || item.date);
 
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
@@ -944,7 +1038,7 @@
           </td>
           <td class="py-3 px-4 font-semibold text-slate-800">${escapeHtml(item.description)}</td>
           <td class="py-3 px-4 text-slate-500">${escapeHtml(item.category)}</td>
-          <td class="py-3 px-4 text-slate-500">${formatDateDisplay(item.date)}</td>
+          <td class="py-3 px-4 text-slate-500 font-mono text-[11px]">${dateHourDisplay}</td>
           <td class="py-3 px-4 text-right font-bold ${valColor}">${formattedVal}</td>
           <td class="py-3 px-4 text-center">
             <div class="flex items-center justify-center gap-1.5">
@@ -969,9 +1063,9 @@
             <div>
               <div class="flex items-center gap-1.5">
                 <p class="text-xs font-bold text-slate-800 leading-tight">${escapeHtml(item.description)}</p>
-                ${isAvulso ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-600 font-bold">Avulso</span>' : ''}
+                ${isAvulso ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-600 font-bold">Avulso</span>' : '<span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-600 font-bold">Auto</span>'}
               </div>
-              <span class="text-[10px] text-slate-400">${escapeHtml(item.category)} • ${formatDateDisplay(item.date)}</span>
+              <span class="text-[10px] text-slate-400">${escapeHtml(item.category)} • ${dateHourDisplay}</span>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -1007,6 +1101,7 @@
 
       avulsos.forEach(item => {
         const isIncome = item.type === 'income';
+        const dateHourDisplay = formatFullDateTime(item.created_at || item.date);
         const el = document.createElement('div');
         el.className = 'py-3 flex items-center justify-between gap-3';
         el.innerHTML = `
@@ -1016,7 +1111,7 @@
             </div>
             <div>
               <p class="text-xs font-bold text-slate-800">${escapeHtml(item.description)}</p>
-              <p class="text-[10px] text-slate-400">${escapeHtml(item.category)} • ${formatDateDisplay(item.date)}</p>
+              <p class="text-[10px] text-slate-400">${escapeHtml(item.category)} • ${dateHourDisplay}</p>
             </div>
           </div>
           <div class="flex items-center gap-3">
@@ -1206,7 +1301,8 @@
         amount,
         date,
         category,
-        user_id: currentUser.id
+        user_id: currentUser.id,
+        created_at: new Date().toISOString()
       };
 
       if (id) {
@@ -1314,7 +1410,8 @@
         category: rule.category,
         date: dateStr,
         recurring_id: rule.id,
-        user_id: currentUser.id
+        user_id: currentUser.id,
+        created_at: new Date().toISOString()
       };
 
       await window.supabaseClient.from('transactions').insert([newTx]);
@@ -1338,7 +1435,8 @@
               category: rule.category,
               date: expectedDate,
               recurring_id: rule.id,
-              user_id: currentUser.id
+              user_id: currentUser.id,
+              created_at: new Date().toISOString()
             });
           }
         });
@@ -1532,10 +1630,11 @@
 
     function exportCSV() {
       if (transactions.length === 0) return alert('Sem dados para exportar.');
-      let csv = 'ID;Tipo;Classificacao;Descricao;Categoria;Data;Valor\n';
+      let csv = 'ID;Tipo;Classificacao;Descricao;Categoria;Data_Competencia;Data_Hora_Registro;Valor\n';
       transactions.forEach(t => {
-        const orig = t.recurring_id ? 'Recorrente' : 'Avulso';
-        csv += `"${t.id}";"${t.type}";"${orig}";"${t.description}";"${t.category}";"${t.date}";"${t.amount}"\n`;
+        const orig = t.recurring_id ? 'Recorrente_Automatico' : 'Avulso';
+        const fullTime = formatFullDateTime(t.created_at || t.date);
+        csv += `"${t.id}";"${t.type}";"${orig}";"${t.description}";"${t.category}";"${t.date}";"${fullTime}";"${t.amount}"\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -1545,14 +1644,25 @@
       a.click();
     }
 
+    // --- FORMATAÇÕES E UTILITÁRIOS ---
     function formatCurrency(v) {
       return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    function formatDateDisplay(d) {
-      if (!d) return '';
-      const [yr, mo, dy] = d.split('-');
-      return `${dy}/${mo}/${yr}`;
+    function formatFullDateTime(dt) {
+      if (!dt) return '';
+      const d = new Date(dt);
+      if (isNaN(d.getTime())) {
+        const [yr, mo, dy] = dt.split('-');
+        return `${dy}/${mo}/${yr}`;
+      }
+      const day = String(d.getDate()).padStart(2, '0');
+      const mon = String(d.getMonth() + 1).padStart(2, '0');
+      const yr = d.getFullYear();
+      const hr = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      const sec = String(d.getSeconds()).padStart(2, '0');
+      return `${day}/${mon}/${yr} às ${hr}:${min}:${sec}`;
     }
 
     function translateFreq(f) {
