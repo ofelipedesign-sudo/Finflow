@@ -40,16 +40,6 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col relative">
 
-  <script>
-    // CREDENCIAIS FIXAS DO PROJETO SUPABASE
-    const SUPABASE_PROJECT_URL = 'https://mrlnczxqhdhptcdojwgh.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_YsuEsBHFtQTprmSPVMlqdw_gTt_UHRj
-'; // <-- COLE SUA CHAVE ANON PUBLIC AQUI ENTRE AS ASPAS
-    
-    // Inicialização direta do cliente Supabase
-    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY) : null;
-  </script>
-
   <!-- TELA DE LOGIN OBRIGATÓRIA (BLOQUEIO INICIAL) -->
   <div id="authGateOverlay" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
@@ -104,25 +94,21 @@
 
       <!-- Ações do Topo -->
       <div class="flex items-center flex-wrap gap-2.5">
-        <!-- Perfil / Desconectar -->
         <button onclick="handleAuthClick()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 transition shadow-sm">
           <i id="authIcon" class="ph-bold ph-user-check text-base text-emerald-600"></i>
           <span id="labelAuthStatus">Minha Conta</span>
         </button>
 
-        <!-- Botão Resetar Dados -->
         <button onclick="openResetModal()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 transition shadow-sm">
           <i class="ph-bold ph-arrows-counter-clockwise text-base text-amber-500"></i>
           <span class="hidden sm:inline">Resetar</span>
         </button>
 
-        <!-- Botão Exportar CSV -->
         <button onclick="exportCSV()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 transition shadow-sm">
           <i class="ph-bold ph-download-simple text-base text-slate-500"></i>
           <span class="hidden sm:inline">Exportar CSV</span>
         </button>
 
-        <!-- Botão Nova Movimentação -->
         <button onclick="openModal()" class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition shadow-sm shadow-brand-600/30">
           <i class="ph-bold ph-plus text-base"></i>
           <span>Nova Movimentação</span>
@@ -165,7 +151,6 @@
 
       <!-- Cards de Indicadores (KPIs) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Saldo Consolidado -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Saldo Consolidado</span>
@@ -179,7 +164,6 @@
           </div>
         </div>
 
-        <!-- Receitas do Mês -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Receitas do Mês</span>
@@ -193,7 +177,6 @@
           </div>
         </div>
 
-        <!-- Despesas do Mês -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Despesas do Mês</span>
@@ -207,7 +190,6 @@
           </div>
         </div>
 
-        <!-- Previsões Programadas -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Previsões do Mês</span>
@@ -266,7 +248,7 @@
           <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
             <div class="relative flex-1 sm:w-56">
               <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
-              <input type="text" id="searchFilter" oninput="renderApp()" placeholder="Buscar lançamentos..." class="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:border-brand-500">
+              <input type="text" id="searchFilter" oninput="renderApp()" placeholder="Buscar lançamentos..." class="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none">
             </div>
 
             <select id="typeFilter" onchange="renderApp()" class="text-xs rounded-lg border border-slate-200 py-1.5 px-3 bg-white focus:outline-none">
@@ -510,7 +492,17 @@
     </div>
   </div>
 
+  <!-- SCRIPTS PRINCIPAIS E CONEXÃO GLOBAL -->
   <script>
+    // CREDENCIAIS GLOBAIS FIXAS DO PROJETO SUPABASE
+    const SUPABASE_PROJECT_URL = 'https://mrlnczxqhdhptcdojwgh.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_YsuEsBHFtQTprmSPVMlqdw_gTt_UHRj'; // <-- COLE SUA CHAVE AQUI
+
+    // Inicialização direta no objeto global window
+    window.supabaseClient = (window.supabase && SUPABASE_ANON_KEY !== 'COLE_AQUI_SUA_CHAVE_ANON_PUBLIC') 
+      ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY) 
+      : null;
+
     const CATEGORIES = {
       income: ['Salário', 'Serviços / Freelance', 'Investimentos', 'Vendas', 'Outros'],
       expense: ['Moradia / Aluguel', 'Supermercado', 'Transporte / Combustível', 'Saúde', 'Educação', 'Lazer', 'Assinaturas', 'Outros']
@@ -541,30 +533,38 @@
 
     // --- CONTROLE DE LOGIN / SESSÃO ---
     async function checkAuthGate() {
-      if (!supabaseClient) return;
-
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session && session.user) {
-        currentUser = session.user;
-        updateAuthHeader();
-        hideAuthGate();
-        await fetchCloudData();
-        subscribeRealtime();
-      } else {
+      if (!window.supabaseClient) {
         showAuthGate();
+        return;
       }
 
-      supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        currentUser = session ? session.user : null;
-        updateAuthHeader();
-        if (currentUser) {
+      try {
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        if (session && session.user) {
+          currentUser = session.user;
+          updateAuthHeader();
           hideAuthGate();
           await fetchCloudData();
           subscribeRealtime();
         } else {
           showAuthGate();
         }
-      });
+
+        window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
+          currentUser = session ? session.user : null;
+          updateAuthHeader();
+          if (currentUser) {
+            hideAuthGate();
+            await fetchCloudData();
+            subscribeRealtime();
+          } else {
+            showAuthGate();
+          }
+        });
+      } catch (err) {
+        console.error('Erro ao verificar sessão:', err);
+        showAuthGate();
+      }
     }
 
     function showAuthGate() {
@@ -594,17 +594,22 @@
 
     async function handleGateAuthSubmit(e) {
       e.preventDefault();
+      if (!window.supabaseClient) {
+        alert('A chave do Supabase não foi inserida no código. Edite o arquivo index.html no GitHub e cole a anon key na linha 42.');
+        return;
+      }
+
       const email = document.getElementById('gateAuthEmail').value.trim();
       const password = document.getElementById('gateAuthPassword').value;
 
       try {
         if (gateAuthMode === 'login') {
-          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
         } else {
-          const { data, error } = await supabaseClient.auth.signUp({ email, password });
+          const { data, error } = await window.supabaseClient.auth.signUp({ email, password });
           if (error) throw error;
-          alert('Conta criada com sucesso! Faça login para continuar.');
+          alert('Conta criada com sucesso! Você já pode entrar.');
           setGateAuthMode('login');
         }
       } catch (err) {
@@ -614,14 +619,14 @@
 
     // --- CARREGAMENTO DE DADOS DO BANCO ---
     async function fetchCloudData() {
-      if (!supabaseClient || !currentUser) return;
+      if (!window.supabaseClient || !currentUser) return;
       try {
-        const { data: txData } = await supabaseClient
+        const { data: txData } = await window.supabaseClient
           .from('transactions')
           .select('*')
           .order('date', { ascending: false });
 
-        const { data: recData } = await supabaseClient
+        const { data: recData } = await window.supabaseClient
           .from('recurring_rules')
           .select('*')
           .order('created_at', { ascending: true });
@@ -635,8 +640,8 @@
     }
 
     function subscribeRealtime() {
-      if (!supabaseClient || !currentUser) return;
-      supabaseClient
+      if (!window.supabaseClient || !currentUser) return;
+      window.supabaseClient
         .channel('realtime_finflow')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => fetchCloudData())
         .on('postgres_changes', { event: '*', schema: 'public', table: 'recurring_rules' }, () => fetchCloudData())
@@ -999,9 +1004,9 @@
       };
 
       if (id) {
-        await supabaseClient.from('transactions').update(newTx).eq('id', id);
+        await window.supabaseClient.from('transactions').update(newTx).eq('id', id);
       } else {
-        await supabaseClient.from('transactions').insert([newTx]);
+        await window.supabaseClient.from('transactions').insert([newTx]);
       }
       await fetchCloudData();
       closeModal();
@@ -1009,7 +1014,7 @@
 
     async function deleteTransaction(id) {
       if (!confirm('Deseja realmente excluir este lançamento?')) return;
-      await supabaseClient.from('transactions').delete().eq('id', id);
+      await window.supabaseClient.from('transactions').delete().eq('id', id);
       await fetchCloudData();
     }
 
@@ -1054,9 +1059,9 @@
       };
 
       if (id) {
-        await supabaseClient.from('recurring_rules').update(rule).eq('id', id);
+        await window.supabaseClient.from('recurring_rules').update(rule).eq('id', id);
       } else {
-        await supabaseClient.from('recurring_rules').insert([rule]);
+        await window.supabaseClient.from('recurring_rules').insert([rule]);
       }
       await fetchCloudData();
       closeRecurringModal();
@@ -1064,7 +1069,7 @@
 
     async function deleteRecurring(id) {
       if (!confirm('Deseja excluir esta regra de recorrência?')) return;
-      await supabaseClient.from('recurring_rules').delete().eq('id', id);
+      await window.supabaseClient.from('recurring_rules').delete().eq('id', id);
       await fetchCloudData();
     }
 
@@ -1102,7 +1107,7 @@
         user_id: currentUser.id
       };
 
-      await supabaseClient.from('transactions').insert([newTx]);
+      await window.supabaseClient.from('transactions').insert([newTx]);
       await fetchCloudData();
     }
 
@@ -1134,7 +1139,7 @@
         return;
       }
 
-      await supabaseClient.from('transactions').insert(toInsert);
+      await window.supabaseClient.from('transactions').insert(toInsert);
       await fetchCloudData();
       alert(`${toInsert.length} ocorrência(s) efetivada(s) com sucesso!`);
     }
@@ -1154,7 +1159,7 @@
     }
 
     async function signOut() {
-      if (supabaseClient) await supabaseClient.auth.signOut();
+      if (window.supabaseClient) await window.supabaseClient.auth.signOut();
       currentUser = null;
       closeUserModal();
       transactions = [];
@@ -1254,8 +1259,8 @@
 
     async function clearAllData() {
       if (!confirm('Deseja apagar definitivamente todos os seus lançamentos?')) return;
-      await supabaseClient.from('transactions').delete().eq('user_id', currentUser.id);
-      await supabaseClient.from('recurring_rules').delete().eq('user_id', currentUser.id);
+      await window.supabaseClient.from('transactions').delete().eq('user_id', currentUser.id);
+      await window.supabaseClient.from('recurring_rules').delete().eq('user_id', currentUser.id);
       await fetchCloudData();
       closeResetModal();
     }
