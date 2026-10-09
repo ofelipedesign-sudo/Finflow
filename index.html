@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>FinFlow - Gestão Financeira Completa</title>
   
   <!-- Tailwind CSS CDN -->
@@ -34,137 +34,135 @@
   </script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 9999px; }
     .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #475569; }
+    
+    /* Previne zoom excessivo e melhora conforto de digitação no telemóvel */
+    @media (max-width: 640px) {
+      input, select, textarea {
+        font-size: 16px !important;
+      }
+    }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 antialiased min-h-screen flex flex-col relative transition-colors duration-200">
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 antialiased min-h-screen flex flex-col relative pb-20 sm:pb-6 transition-colors duration-200">
 
   <!-- CREDENCIAIS GLOBAIS FIXAS DO PROJETO SUPABASE -->
   <script>
     const SUPABASE_PROJECT_URL = 'https://mrlnczxqhdhptcdojwgh.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_YsuEsBHFtQTprmSPVMlqdw_gTt_UHRj'; // Mantida intacta
+    const SUPABASE_ANON_KEY = 'sb_publishable_YsuEsBHFtQTprmSPVMlqdw_gTt_UHRj';
 
     window.supabaseClient = (window.supabase && SUPABASE_ANON_KEY !== 'COLE_AQUI_SUA_CHAVE_ANON_PUBLIC') 
       ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY) 
       : null;
   </script>
 
-  <!-- TELA DE LOGIN OBRIGATÓRIA (BLOQUEIO INICIAL) -->
-  <div id="authGateOverlay" class="fixed inset-0 z-50 bg-slate-900/60 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+  <!-- TELA DE LOGIN OBRIGATÓRIA (OTIMIZADA PARA MOBILE) -->
+  <div id="authGateOverlay" class="fixed inset-0 z-50 bg-slate-900/70 dark:bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 animate-in slide-in-from-bottom sm:zoom-in duration-200 max-h-[92vh] overflow-y-auto custom-scrollbar">
       
+      <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden mb-1"></div>
+
       <div class="text-center">
         <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white mx-auto shadow-md shadow-brand-500/20 mb-3">
           <i class="ph-bold ph-wallet text-2xl"></i>
         </div>
         <h2 class="text-xl font-bold text-slate-900 dark:text-white">Bem-vindo ao FinFlow</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Acesse com seu e-mail para carregar suas finanças.</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Aceda com o seu e-mail para sincronizar as suas contas.</p>
       </div>
 
       <div class="flex border border-slate-200 dark:border-slate-700 rounded-xl p-1 bg-slate-100 dark:bg-slate-800 text-xs font-semibold">
-        <button type="button" id="gateTabLogin" onclick="setGateAuthMode('login')" class="flex-1 py-1.5 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition">Entrar</button>
-        <button type="button" id="gateTabRegister" onclick="setGateAuthMode('register')" class="flex-1 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 transition">Criar Conta</button>
+        <button type="button" id="gateTabLogin" onclick="setGateAuthMode('login')" class="flex-1 py-2.5 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition">Entrar</button>
+        <button type="button" id="gateTabRegister" onclick="setGateAuthMode('register')" class="flex-1 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 transition">Criar Conta</button>
       </div>
 
-      <form id="formGateAuth" onsubmit="handleGateAuthSubmit(event)" class="flex flex-col gap-3">
+      <form id="formGateAuth" onsubmit="handleGateAuthSubmit(event)" class="flex flex-col gap-3.5">
         <div>
-          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">E-mail</label>
-          <input type="email" id="gateAuthEmail" required placeholder="seu@email.com" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:outline-none focus:border-brand-500">
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">E-mail</label>
+          <input type="email" id="gateAuthEmail" required placeholder="seu@email.com" class="w-full px-3.5 py-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:outline-none focus:border-brand-500">
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Senha</label>
-          <input type="password" id="gateAuthPassword" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:outline-none focus:border-brand-500">
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Palavra-passe</label>
+          <input type="password" id="gateAuthPassword" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full px-3.5 py-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:outline-none focus:border-brand-500">
         </div>
 
-        <button type="submit" id="btnGateAuthSubmit" class="w-full mt-2 py-2.5 text-xs font-bold rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition">Entrar no FinFlow</button>
+        <button type="submit" id="btnGateAuthSubmit" class="w-full mt-2 py-3.5 text-sm font-bold rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-[0.98] text-white shadow-sm transition">Entrar no FinFlow</button>
       </form>
     </div>
   </div>
 
-  <!-- Header Principal -->
+  <!-- Header Principal Adaptado -->
   <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 transition-colors duration-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
-          <i class="ph-bold ph-wallet text-2xl"></i>
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+          <i class="ph-bold ph-wallet text-xl"></i>
         </div>
         <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">FinFlow</h1>
-            <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">Sincronizado</span>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-none">FinFlow</h1>
+            <span class="text-[9px] font-semibold uppercase px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hidden xs:inline">Cloud</span>
           </div>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Gestão Financeira Multidispositivo</p>
+          <p class="text-[11px] text-slate-400 mt-0.5 hidden sm:block">Gestão Multidispositivo</p>
         </div>
       </div>
 
       <!-- Ações do Topo -->
-      <div class="flex items-center flex-wrap gap-2.5">
+      <div class="flex items-center gap-2">
 
-        <!-- CHAVE DE ALTERNÂNCIA (MODO ESCURO / CLARO) -->
-        <div class="flex items-center">
-          <label for="themeToggleCheckbox" class="relative inline-flex items-center cursor-pointer select-none" title="Alternar Modo Escuro / Claro">
-            <input type="checkbox" id="themeToggleCheckbox" onchange="toggleTheme()" class="sr-only peer">
-            <div class="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-800 peer-checked:bg-slate-700 transition-colors border border-slate-300 dark:border-slate-700 flex items-center justify-between px-1.5">
-              <i class="ph-bold ph-sun text-amber-500 text-xs"></i>
-              <i class="ph-bold ph-moon text-indigo-400 text-xs"></i>
-            </div>
-            <div class="absolute left-1 top-1 bg-white dark:bg-slate-200 w-5 h-5 rounded-full transition-transform peer-checked:translate-x-7 shadow-sm flex items-center justify-center">
-              <span id="themeIndicatorDot" class="w-1.5 h-1.5 rounded-full bg-brand-600"></span>
-            </div>
-          </label>
-        </div>
+        <!-- Alternador Dark / Light -->
+        <label for="themeToggleCheckbox" class="relative inline-flex items-center cursor-pointer select-none" title="Tema">
+          <input type="checkbox" id="themeToggleCheckbox" onchange="toggleTheme()" class="sr-only peer">
+          <div class="w-12 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-800 peer-checked:bg-slate-700 transition-colors border border-slate-300 dark:border-slate-700 flex items-center justify-between px-1">
+            <i class="ph-bold ph-sun text-amber-500 text-[10px]"></i>
+            <i class="ph-bold ph-moon text-indigo-400 text-[10px]"></i>
+          </div>
+          <div class="absolute left-0.5 top-0.5 bg-white dark:bg-slate-200 w-5 h-5 rounded-full transition-transform peer-checked:translate-x-6 shadow-sm flex items-center justify-center">
+            <span class="w-1 h-1 rounded-full bg-brand-600"></span>
+          </div>
+        </label>
 
-        <!-- Ícone Pequeno e Discreto de Notificações -->
+        <!-- Sino de Notificações -->
         <div class="relative">
-          <button id="btnBell" onclick="toggleNotificationsDropdown()" class="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition" title="Notificações Automáticas">
+          <button id="btnBell" onclick="toggleNotificationsDropdown()" class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg transition" title="Notificações">
             <i class="ph-bold ph-bell text-lg"></i>
             <span id="bellBadge" class="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-900 hidden"></span>
           </button>
 
-          <!-- Dropdown de Notificações -->
-          <div id="notificationsDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-3 z-50 animate-in fade-in duration-150">
+          <!-- Dropdown Notificações Responsivo -->
+          <div id="notificationsDropdown" class="hidden absolute right-0 mt-2 w-72 sm:w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 py-3 z-50">
             <div class="px-4 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <div class="flex items-center gap-1.5">
-                <i class="ph-bold ph-lightning text-emerald-600 text-sm"></i>
-                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200">Automações & Entradas Recorrentes</h4>
-              </div>
-              <button onclick="markAllNotificationsRead()" class="text-[10px] text-slate-400 hover:text-brand-600 font-semibold transition">Limpar avisos</button>
+              <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Automações Recorrentes</span>
+              <button onclick="markAllNotificationsRead()" class="text-[10px] text-slate-400 hover:text-brand-600">Limpar</button>
             </div>
-            
-            <div id="notificationsList" class="max-h-72 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800/60 custom-scrollbar px-1"></div>
-
-            <div id="emptyNotifications" class="p-6 text-center text-slate-400 dark:text-slate-500 hidden">
-              <i class="ph-bold ph-bell-simple-slash text-2xl text-slate-300 dark:text-slate-600 mb-1"></i>
-              <p class="text-xs font-medium">Nenhum lançamento automático recente.</p>
-            </div>
+            <div id="notificationsList" class="max-h-64 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800/60 custom-scrollbar px-1"></div>
+            <div id="emptyNotifications" class="p-5 text-center text-slate-400 hidden text-xs">Sem novas inserções.</div>
           </div>
         </div>
 
-        <button onclick="handleAuthClick()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition shadow-sm">
+        <button onclick="handleAuthClick()" class="p-2 sm:px-3 sm:py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 transition">
           <i id="authIcon" class="ph-bold ph-user-check text-base text-emerald-600"></i>
-          <span id="labelAuthStatus">Minha Conta</span>
+          <span id="labelAuthStatus" class="hidden sm:inline ml-1">Conta</span>
         </button>
 
-        <button onclick="openResetModal()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 transition shadow-sm">
-          <i class="ph-bold ph-arrows-counter-clockwise text-base text-amber-500"></i>
-          <span class="hidden sm:inline">Resetar</span>
+        <button onclick="openResetModal()" class="hidden sm:flex items-center gap-1 px-2.5 py-2 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800">
+          <i class="ph-bold ph-arrows-counter-clockwise text-amber-500"></i>
+          <span>Reset</span>
         </button>
 
-        <button onclick="exportCSV()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 transition shadow-sm">
-          <i class="ph-bold ph-download-simple text-base text-slate-500 dark:text-slate-400"></i>
-          <span class="hidden sm:inline">Exportar CSV</span>
+        <button onclick="exportCSV()" class="hidden sm:flex items-center gap-1 px-2.5 py-2 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800">
+          <i class="ph-bold ph-download-simple"></i>
+          <span>CSV</span>
         </button>
 
-        <button onclick="openModal('avulso')" class="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900 transition shadow-sm">
-          <i class="ph-bold ph-lightning text-base text-indigo-600 dark:text-indigo-400"></i>
-          <span>Lançar Avulso</span>
-        </button>
-
-        <button onclick="openModal()" class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition shadow-sm shadow-brand-600/30">
+        <!-- Botão Desktop Nova Movimentação -->
+        <button onclick="openModal()" class="hidden sm:flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition shadow-sm">
           <i class="ph-bold ph-plus text-base"></i>
           <span>Nova Movimentação</span>
         </button>
@@ -172,123 +170,123 @@
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col gap-6">
+  <main class="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1 flex flex-col gap-4 sm:gap-6">
 
-    <!-- Navegação de Abas -->
-    <div class="flex flex-wrap items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 gap-3">
-      <div class="flex flex-wrap items-center gap-2">
+    <!-- Barra de Filtro de Mês e Abas no Desktop -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 gap-3">
+      <!-- Abas Desktop -->
+      <div class="hidden sm:flex items-center gap-2">
         <button onclick="switchTab('dashboard')" id="tabDash" class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-brand-50 dark:bg-emerald-950/40 text-brand-700 dark:text-emerald-300 border border-brand-200 dark:border-emerald-800 flex items-center gap-2">
           <i class="ph-bold ph-chart-pie-slice"></i>
-          <span>Painel & Movimentações</span>
+          <span>Painel</span>
         </button>
         <button onclick="switchTab('avulsos')" id="tabAvulsos" class="px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
           <i class="ph-bold ph-lightning"></i>
-          <span>Lançamentos Avulsos</span>
+          <span>Avulsos</span>
           <span id="badgeAvulsosCount" class="text-[11px] px-1.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold">0</span>
         </button>
         <button onclick="switchTab('recurring')" id="tabRecur" class="px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
           <i class="ph-bold ph-calendar-check"></i>
-          <span>Programadas & Recorrência</span>
+          <span>Recorrências</span>
           <span id="badgePendingCount" class="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-bold hidden">0</span>
         </button>
       </div>
 
-      <div class="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm text-sm">
-        <button onclick="changeMonth(-1)" class="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded hover:bg-slate-100 dark:hover:bg-slate-800" title="Mês anterior">
-          <i class="ph-bold ph-caret-left"></i>
+      <!-- Seletor de Período Otimizado para Toque -->
+      <div class="flex items-center justify-between sm:justify-start gap-1 bg-white dark:bg-slate-900 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm text-xs sm:text-sm">
+        <button onclick="changeMonth(-1)" class="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded-lg active:bg-slate-100 dark:active:bg-slate-800">
+          <i class="ph-bold ph-caret-left text-base"></i>
         </button>
-        <input type="month" id="monthSelector" onchange="onMonthChange()" class="text-sm font-semibold text-slate-700 dark:text-slate-200 bg-transparent focus:outline-none cursor-pointer">
-        <button onclick="changeMonth(1)" class="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded hover:bg-slate-100 dark:hover:bg-slate-800" title="Próximo mês">
-          <i class="ph-bold ph-caret-right"></i>
+        <input type="month" id="monthSelector" onchange="onMonthChange()" class="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 bg-transparent text-center focus:outline-none cursor-pointer py-1">
+        <button onclick="changeMonth(1)" class="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded-lg active:bg-slate-100 dark:active:bg-slate-800">
+          <i class="ph-bold ph-caret-right text-base"></i>
         </button>
-        <button onclick="setAllPeriod()" class="text-xs font-semibold px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition ml-1">Todo Período</button>
+        <button onclick="setAllPeriod()" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 ml-1">Todo Período</button>
       </div>
     </div>
 
     <!-- ABA 1: PAINEL & TRANSAÇÕES -->
-    <div id="viewDashboard" class="flex flex-col gap-6">
+    <div id="viewDashboard" class="flex flex-col gap-4 sm:gap-6">
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+      <!-- Indicadores KPIs Adaptados -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <!-- Saldo Geral -->
+        <div class="col-span-2 sm:col-span-1 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Saldo Consolidado</span>
-            <div id="iconBalanceBg" class="w-9 h-9 rounded-xl bg-brand-50 dark:bg-emerald-950/60 flex items-center justify-center text-brand-600 dark:text-emerald-400">
-              <i class="ph-bold ph-scales text-lg"></i>
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Saldo Geral</span>
+            <div id="iconBalanceBg" class="w-8 h-8 rounded-xl bg-brand-50 dark:bg-emerald-950/60 flex items-center justify-center text-brand-600 dark:text-emerald-400">
+              <i class="ph-bold ph-scales text-base"></i>
             </div>
           </div>
-          <div class="mt-4">
-            <h3 id="cardTotalBalance" class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">R$ 0,00</h3>
-            <p id="cardBalanceStatus" class="text-xs text-slate-500 dark:text-slate-400 mt-1">Saldo neutro / zerado</p>
+          <div class="mt-2 sm:mt-4">
+            <h3 id="cardTotalBalance" class="text-2xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">R$ 0,00</h3>
+            <p id="cardBalanceStatus" class="text-[11px] text-slate-400 mt-0.5 truncate">Saldo neutro</p>
           </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+        <!-- Receitas -->
+        <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Receitas do Mês</span>
-            <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-              <i class="ph-bold ph-arrow-up-right text-lg"></i>
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Receitas</span>
+            <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <i class="ph-bold ph-arrow-up-right text-base"></i>
             </div>
           </div>
-          <div class="mt-4">
-            <h3 id="cardTotalIncome" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">R$ 0,00</h3>
-            <p id="cardIncomeCount" class="text-xs text-slate-500 dark:text-slate-400 mt-1">0 lançamentos</p>
+          <div class="mt-2 sm:mt-4">
+            <h3 id="cardTotalIncome" class="text-lg sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">R$ 0,00</h3>
+            <p id="cardIncomeCount" class="text-[11px] text-slate-400 mt-0.5">0 lançamentos</p>
           </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+        <!-- Despesas -->
+        <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Despesas do Mês</span>
-            <div class="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/60 flex items-center justify-center text-rose-600 dark:text-rose-400">
-              <i class="ph-bold ph-arrow-down-left text-lg"></i>
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Despesas</span>
+            <div class="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 flex items-center justify-center text-rose-600 dark:text-rose-400">
+              <i class="ph-bold ph-arrow-down-left text-base"></i>
             </div>
           </div>
-          <div class="mt-4">
-            <h3 id="cardTotalExpense" class="text-2xl font-black text-rose-600 dark:text-rose-400 tracking-tight">R$ 0,00</h3>
-            <p id="cardExpenseCount" class="text-xs text-slate-500 dark:text-slate-400 mt-1">0 lançamentos</p>
+          <div class="mt-2 sm:mt-4">
+            <h3 id="cardTotalExpense" class="text-lg sm:text-2xl font-black text-rose-600 dark:text-rose-400 tracking-tight">R$ 0,00</h3>
+            <p id="cardExpenseCount" class="text-[11px] text-slate-400 mt-0.5">0 lançamentos</p>
           </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+        <!-- Previsões -->
+        <div class="col-span-2 sm:col-span-1 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Previsões do Mês</span>
-            <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
-              <i class="ph-bold ph-clock-countdown text-lg"></i>
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Previsões Recorrentes</span>
+            <div class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
+              <i class="ph-bold ph-clock-countdown text-base"></i>
             </div>
           </div>
-          <div class="mt-4">
-            <div class="flex items-center justify-between text-xs font-medium">
-              <span class="text-slate-500 dark:text-slate-400">Desp. Previstas:</span>
-              <span id="cardPendingExpense" class="text-rose-600 dark:text-rose-400 font-bold">R$ 0,00</span>
-            </div>
-            <div class="flex items-center justify-between text-xs font-medium mt-1">
-              <span class="text-slate-500 dark:text-slate-400">Rec. Previstas:</span>
-              <span id="cardPendingIncome" class="text-emerald-600 dark:text-emerald-400 font-bold">R$ 0,00</span>
-            </div>
-            <p id="cardPendingText" class="text-[11px] text-amber-700 dark:text-amber-400 font-semibold mt-2 pt-1 border-t border-slate-100 dark:border-slate-800">0 itens pendentes</p>
+          <div class="mt-2 text-xs flex items-center justify-between gap-2">
+            <span class="text-rose-600 font-bold" id="cardPendingExpense">Desp: R$ 0,00</span>
+            <span class="text-emerald-600 font-bold" id="cardPendingIncome">Rec: R$ 0,00</span>
           </div>
+          <p id="cardPendingText" class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-1.5 pt-1 border-t border-slate-100 dark:border-slate-800">0 pendentes</p>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div class="flex items-center justify-between mb-4">
-            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100">Evolução Mensal (Receitas vs Despesas)</h4>
-            <span class="text-xs text-slate-500 dark:text-slate-400">Últimos 6 meses</span>
+      <!-- Gráficos -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100">Evolução dos Últimos 6 Meses</h4>
           </div>
-          <div class="h-64 relative">
+          <div class="h-52 sm:h-64 relative">
             <canvas id="chartHistory"></canvas>
           </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
-          <div class="flex items-center justify-between mb-4">
-            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100">Despesas por Categoria</h4>
-            <span class="text-xs text-slate-500 dark:text-slate-400">Período ativo</span>
+        <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100">Despesas por Categoria</h4>
           </div>
-          <div class="h-64 relative flex items-center justify-center">
+          <div class="h-52 sm:h-64 relative flex items-center justify-center">
             <canvas id="chartCategory"></canvas>
             <div id="noChartCategory" class="absolute inset-0 flex items-center justify-center text-xs text-slate-400 dark:text-slate-500 hidden">
-              Sem dados de despesas neste período
+              Sem dados neste período
             </div>
           </div>
         </div>
@@ -296,36 +294,32 @@
 
       <!-- Histórico de Transações -->
       <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
-        <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-          <div class="flex items-center gap-2">
-            <h4 class="text-base font-bold text-slate-900 dark:text-white">Histórico de Transações</h4>
-            <span id="countTransactionsBadge" class="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full font-bold">0</span>
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white">Movimentações</h4>
+              <span id="countTransactionsBadge" class="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full font-bold">0</span>
+            </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-            <div class="relative flex-1 sm:w-52">
-              <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
-              <input type="text" id="searchFilter" oninput="renderApp()" placeholder="Buscar lançamentos..." class="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
-            </div>
+          <div class="grid grid-cols-2 sm:flex items-center gap-2">
+            <input type="text" id="searchFilter" oninput="renderApp()" placeholder="Procurar..." class="col-span-2 sm:w-44 px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
 
-            <select id="originFilter" onchange="renderApp()" class="text-xs rounded-lg border border-slate-200 dark:border-slate-700 py-1.5 px-3 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
-              <option value="all">Todas as Origens</option>
-              <option value="avulso">Apenas Avulsos</option>
-              <option value="recorrente">Apenas Recorrentes</option>
+            <select id="originFilter" onchange="renderApp()" class="text-xs rounded-xl border border-slate-200 dark:border-slate-700 py-2 px-2.5 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+              <option value="all">Origem</option>
+              <option value="avulso">Avulsos</option>
+              <option value="recorrente">Recorrentes</option>
             </select>
 
-            <select id="typeFilter" onchange="renderApp()" class="text-xs rounded-lg border border-slate-200 dark:border-slate-700 py-1.5 px-3 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
-              <option value="all">Todos os Tipos</option>
-              <option value="income">Apenas Receitas</option>
-              <option value="expense">Apenas Despesas</option>
-            </select>
-
-            <select id="categoryFilter" onchange="renderApp()" class="text-xs rounded-lg border border-slate-200 dark:border-slate-700 py-1.5 px-3 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
-              <option value="all">Todas as Categorias</option>
+            <select id="typeFilter" onchange="renderApp()" class="text-xs rounded-xl border border-slate-200 dark:border-slate-700 py-2 px-2.5 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+              <option value="all">Tipos</option>
+              <option value="income">Receitas</option>
+              <option value="expense">Despesas</option>
             </select>
           </div>
         </div>
 
+        <!-- Tabela no Desktop -->
         <div class="hidden sm:block overflow-x-auto custom-scrollbar">
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-200 dark:border-slate-700">
@@ -334,7 +328,7 @@
                 <th class="py-3 px-4">Tipo</th>
                 <th class="py-3 px-4">Descrição</th>
                 <th class="py-3 px-4">Categoria</th>
-                <th class="py-3 px-4">Data / Hora de Registro</th>
+                <th class="py-3 px-4">Data/Hora</th>
                 <th class="py-3 px-4 text-right">Valor</th>
                 <th class="py-3 px-4 text-center">Ações</th>
               </tr>
@@ -343,211 +337,224 @@
           </table>
         </div>
 
-        <div id="transactionMobileList" class="sm:hidden divide-y divide-slate-100 dark:divide-slate-800 p-2"></div>
+        <!-- Lista Ergonómica Móvel -->
+        <div id="transactionMobileList" class="sm:hidden divide-y divide-slate-100 dark:divide-slate-800/80"></div>
 
-        <div id="emptyStateTransactions" class="p-10 text-center flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hidden">
-          <i class="ph-bold ph-receipt text-4xl mb-2 text-slate-300 dark:text-slate-600"></i>
-          <p class="text-sm font-semibold text-slate-600 dark:text-slate-400">Nenhuma movimentação encontrada</p>
-          <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Cadastre uma nova transação ou altere o período do filtro.</p>
+        <div id="emptyStateTransactions" class="p-8 text-center text-slate-400 dark:text-slate-500 hidden">
+          <i class="ph-bold ph-receipt text-3xl mb-1"></i>
+          <p class="text-xs font-semibold">Nenhuma movimentação registada.</p>
         </div>
       </div>
 
     </div>
 
     <!-- ABA 2: LANÇAMENTOS AVULSOS -->
-    <div id="viewAvulsos" class="flex flex-col gap-6 hidden">
-      <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
+    <div id="viewAvulsos" class="flex flex-col gap-4 sm:gap-6 hidden">
+      <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
         <div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">Central de Lançamentos Avulsos & Extras</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Registre entradas e saídas que fogem da rotina mensal (vendas, freelancers, doações, extras).</p>
+          <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Lançamentos Avulsos & Extras</h3>
+          <p class="text-xs text-slate-400">Atalhos rápidos para receitas e despesas pontuais.</p>
         </div>
-        <button onclick="openModal('avulso')" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition flex items-center gap-1.5 shadow-sm shadow-indigo-600/30">
-          <i class="ph-bold ph-plus text-base"></i>
-          <span>Novo Lançamento Avulso</span>
-        </button>
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        <button onclick="quickAddAvulso('Venda Avulsa', 'Vendas', 'income')" class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-2xl text-left transition shadow-sm group">
-          <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2 group-hover:scale-110 transition">
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+        <button onclick="quickAddAvulso('Venda Avulsa', 'Vendas', 'income')" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 active:bg-slate-50 dark:active:bg-slate-800 rounded-2xl text-left transition shadow-sm">
+          <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2">
             <i class="ph-bold ph-tag text-lg"></i>
           </div>
           <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">Venda</span>
-          <span class="text-[10px] text-slate-400">Desapego, produto ou item</span>
+          <span class="text-[10px] text-slate-400">Desapego / item</span>
         </button>
 
-        <button onclick="quickAddAvulso('Trabalho Freelance', 'Freelance', 'income')" class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-2xl text-left transition shadow-sm group">
-          <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-2 group-hover:scale-110 transition">
+        <button onclick="quickAddAvulso('Trabalho Freelance', 'Freelance', 'income')" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 active:bg-slate-50 dark:active:bg-slate-800 rounded-2xl text-left transition shadow-sm">
+          <div class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-2">
             <i class="ph-bold ph-laptop text-lg"></i>
           </div>
           <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">Freelance</span>
-          <span class="text-[10px] text-slate-400">Serviço ou projeto pontual</span>
+          <span class="text-[10px] text-slate-400">Serviço pontual</span>
         </button>
 
-        <button onclick="quickAddAvulso('Doação Recebida', 'Doação', 'income')" class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-2xl text-left transition shadow-sm group">
-          <div class="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-2 group-hover:scale-110 transition">
+        <button onclick="quickAddAvulso('Doação Recebida', 'Doação', 'income')" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 active:bg-slate-50 dark:active:bg-slate-800 rounded-2xl text-left transition shadow-sm">
+          <div class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-2">
             <i class="ph-bold ph-heart text-lg"></i>
           </div>
           <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">Doação</span>
-          <span class="text-[10px] text-slate-400">Entrada beneficente ou ajuda</span>
+          <span class="text-[10px] text-slate-400">Ajuda recebida</span>
         </button>
 
-        <button onclick="quickAddAvulso('Bonificação / Extra', 'Bonificação / Extra', 'income')" class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-2xl text-left transition shadow-sm group">
-          <div class="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-2 group-hover:scale-110 transition">
+        <button onclick="quickAddAvulso('Bonificação / Extra', 'Bonificação / Extra', 'income')" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 active:bg-slate-50 dark:active:bg-slate-800 rounded-2xl text-left transition shadow-sm">
+          <div class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-2">
             <i class="ph-bold ph-gift text-lg"></i>
           </div>
           <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">Bonificação</span>
-          <span class="text-[10px] text-slate-400">Prêmio, gratificação ou comissão</span>
+          <span class="text-[10px] text-slate-400">Comissão / extra</span>
         </button>
 
-        <button onclick="quickAddAvulso('Gasto Imprevisto', 'Gasto Imprevisto / Esporádico', 'expense')" class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-2xl text-left transition shadow-sm group col-span-2 sm:col-span-1">
-          <div class="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-2 group-hover:scale-110 transition">
+        <button onclick="quickAddAvulso('Gasto Imprevisto', 'Gasto Imprevisto / Esporádico', 'expense')" class="p-3.5 col-span-2 sm:col-span-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 active:bg-slate-50 dark:active:bg-slate-800 rounded-2xl text-left transition shadow-sm">
+          <div class="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-2">
             <i class="ph-bold ph-warning-circle text-lg"></i>
           </div>
           <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">Imprevisto</span>
-          <span class="text-[10px] text-slate-400">Conserto, remédio ou urgência</span>
+          <span class="text-[10px] text-slate-400">Reparo / emergência</span>
         </button>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5">
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
-          <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">Lançamentos Avulsos no Período Selecionado</h4>
-          <span id="labelTotalAvulsosPeriod" class="text-xs font-bold text-indigo-600 dark:text-indigo-400">Total: R$ 0,00</span>
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-3">
+          <h4 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">Avulsos no Período</h4>
+          <span id="labelTotalAvulsosPeriod" class="text-xs font-bold text-indigo-600 dark:text-indigo-400">R$ 0,00</span>
         </div>
-        <div id="containerAvulsosList" class="divide-y divide-slate-100 dark:divide-slate-800"></div>
-        <div id="emptyStateAvulsos" class="p-8 text-center text-slate-400 dark:text-slate-500 hidden">
-          <i class="ph-bold ph-lightning-slash text-4xl mb-2 text-slate-300 dark:text-slate-600"></i>
-          <p class="text-xs font-semibold text-slate-600 dark:text-slate-400">Nenhum lançamento avulso neste período</p>
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Clique em um dos atalhos rápidos acima para registrar.</p>
-        </div>
+        <div id="containerAvulsosList" class="divide-y divide-slate-100 dark:divide-slate-800/70"></div>
+        <div id="emptyStateAvulsos" class="p-6 text-center text-slate-400 text-xs hidden">Nenhum avulso registado.</div>
       </div>
     </div>
 
     <!-- ABA 3: PROGRAMADAS & RECORRÊNCIAS -->
-    <div id="viewRecurring" class="flex flex-col gap-6 hidden">
-      <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
+    <div id="viewRecurring" class="flex flex-col gap-4 sm:gap-6 hidden">
+      <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">Receitas e Despesas Programadas</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Gerencie compromissos fixos e semanais com cálculo exato no calendário.</p>
+          <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Compromissos Recorrentes</h3>
+          <p class="text-xs text-slate-400">Lançamentos automáticos no dia marcado.</p>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="fulfillAllPendingCurrentMonth()" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900 transition flex items-center gap-1.5">
-            <i class="ph-bold ph-check-square-offset text-base"></i>
-            <span>Efetivar Todos Pendentes no Mês</span>
+        <div class="flex gap-2">
+          <button onclick="fulfillAllPendingCurrentMonth()" class="flex-1 sm:flex-none px-3.5 py-2.5 text-xs font-semibold rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+            Efetivar Pendentes
           </button>
-          <button onclick="openRecurringModal()" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition flex items-center gap-1.5">
-            <i class="ph-bold ph-plus text-base"></i>
-            <span>Nova Programação</span>
+          <button onclick="openRecurringModal()" class="flex-1 sm:flex-none px-3.5 py-2.5 text-xs font-semibold rounded-xl bg-brand-600 text-white">
+            + Nova Regra
           </button>
         </div>
       </div>
 
-      <div id="recurringListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-
-      <div id="emptyStateRecurring" class="bg-white dark:bg-slate-900 p-12 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm text-center flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hidden">
-        <i class="ph-bold ph-calendar-plus text-4xl mb-2 text-slate-300 dark:text-slate-600"></i>
-        <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nenhum lançamento recorrente programado</h4>
-        <p class="text-xs text-slate-400 dark:text-slate-500 max-w-sm mt-1">Cadastre seus custos fixos ou semanais para efetivar com apenas 1 clique.</p>
+      <div id="recurringListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4"></div>
+      <div id="emptyStateRecurring" class="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 text-center text-slate-400 text-xs hidden">
+        Nenhuma regra programada.
       </div>
     </div>
 
   </main>
 
-  <!-- MODAL: NOVA / EDITAR TRANSAÇÃO -->
-  <div id="modalTransaction" class="fixed inset-0 z-50 bg-slate-900/40 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col gap-4">
-      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-        <h3 id="modalTransactionTitle" class="text-base font-bold text-slate-900 dark:text-white">Nova Movimentação</h3>
-        <button onclick="closeModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white">
+  <!-- BARRA DE NAVEGAÇÃO INFERIOR MÓVEL (BOTTOM NAVIGATION ERGONÓMICA) -->
+  <nav class="sm:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 z-40 px-3 py-2 flex items-center justify-around">
+    <button onclick="switchTab('dashboard')" id="mTabDash" class="flex flex-col items-center gap-1 text-brand-600 dark:text-emerald-400">
+      <i class="ph-bold ph-chart-pie-slice text-xl"></i>
+      <span class="text-[10px] font-bold">Painel</span>
+    </button>
+    <button onclick="switchTab('avulsos')" id="mTabAvulsos" class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+      <i class="ph-bold ph-lightning text-xl"></i>
+      <span class="text-[10px] font-medium">Avulsos</span>
+    </button>
+    
+    <!-- Botão Central Flutuante para Adição Instantânea -->
+    <button onclick="openModal()" class="w-11 h-11 -mt-5 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-lg shadow-brand-600/40 active:scale-95 transition">
+      <i class="ph-bold ph-plus text-xl"></i>
+    </button>
+
+    <button onclick="switchTab('recurring')" id="mTabRecur" class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+      <i class="ph-bold ph-calendar-check text-xl"></i>
+      <span class="text-[10px] font-medium">Recorrente</span>
+    </button>
+    <button onclick="handleAuthClick()" class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+      <i class="ph-bold ph-user text-xl"></i>
+      <span class="text-[10px] font-medium">Perfil</span>
+    </button>
+  </nav>
+
+  <!-- MODAL: NOVA / EDITAR TRANSAÇÃO (BOTTOM SHEET EM MOBILE) -->
+  <div id="modalTransaction" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 animate-in slide-in-from-bottom sm:zoom-in duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden"></div>
+      
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+        <h3 id="modalTransactionTitle" class="text-sm font-bold text-slate-900 dark:text-white">Nova Movimentação</h3>
+        <button onclick="closeModal()" class="p-1 text-slate-400">
           <i class="ph-bold ph-x text-lg"></i>
         </button>
       </div>
 
-      <form id="formTransaction" onsubmit="saveTransaction(event)" class="flex flex-col gap-3.5">
+      <form id="formTransaction" onsubmit="saveTransaction(event)" class="flex flex-col gap-3">
         <input type="hidden" id="transId">
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Classificação da Transação</label>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Classificação</label>
           <div class="grid grid-cols-2 gap-2">
-            <label class="flex items-center justify-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-indigo-50 dark:has-[:checked]:bg-indigo-950/60 has-[:checked]:border-indigo-500 dark:has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700 dark:has-[:checked]:text-indigo-300 font-semibold text-xs">
+            <label class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-indigo-50 dark:has-[:checked]:bg-indigo-950/60 has-[:checked]:border-indigo-500 text-xs font-semibold">
               <input type="radio" name="transOrigin" value="avulso" class="hidden" checked onchange="updateCategorySelect()">
-              <i class="ph-bold ph-lightning text-indigo-600 dark:text-indigo-400"></i>
-              <span>Lançamento Avulso</span>
+              <span>Avulso</span>
             </label>
-            <label class="flex items-center justify-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-slate-100 dark:has-[:checked]:bg-slate-800 has-[:checked]:border-slate-400 dark:has-[:checked]:border-slate-500 has-[:checked]:text-slate-800 dark:has-[:checked]:text-white font-semibold text-xs">
+            <label class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-slate-100 dark:has-[:checked]:bg-slate-800 has-[:checked]:border-slate-400 text-xs font-semibold">
               <input type="radio" name="transOrigin" value="fixo" class="hidden" onchange="updateCategorySelect()">
-              <i class="ph-bold ph-calendar text-slate-600 dark:text-slate-400"></i>
-              <span>Fixo / Regular</span>
+              <span>Regular</span>
             </label>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Tipo de Movimentação</label>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Natureza</label>
           <div class="grid grid-cols-2 gap-2">
-            <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-emerald-50 dark:has-[:checked]:bg-emerald-950/60 has-[:checked]:border-emerald-500 has-[:checked]:text-emerald-700 dark:has-[:checked]:text-emerald-300 font-semibold text-xs">
+            <label class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-emerald-50 dark:has-[:checked]:bg-emerald-950/60 has-[:checked]:border-emerald-500 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
               <input type="radio" name="transType" value="income" class="hidden" checked onchange="updateCategorySelect()">
-              <i class="ph-bold ph-arrow-up-right text-emerald-600 dark:text-emerald-400"></i>
-              <span>Receita</span>
+              <span>+ Receita</span>
             </label>
-            <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-rose-50 dark:has-[:checked]:bg-rose-950/60 has-[:checked]:border-rose-500 has-[:checked]:text-rose-700 dark:has-[:checked]:text-rose-300 font-semibold text-xs">
+            <label class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-rose-50 dark:has-[:checked]:bg-rose-950/60 has-[:checked]:border-rose-500 text-rose-700 dark:text-rose-300 text-xs font-bold">
               <input type="radio" name="transType" value="expense" class="hidden" onchange="updateCategorySelect()">
-              <i class="ph-bold ph-arrow-down-left text-rose-600 dark:text-rose-400"></i>
-              <span>Despesa</span>
+              <span>- Despesa</span>
             </label>
           </div>
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
-          <input type="text" id="transDesc" required placeholder="Ex: Venda de peça, Freelance, Doação..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:border-brand-500">
+          <input type="text" id="transDesc" required placeholder="Ex: Supermercado, Venda..." class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Valor (R$)</label>
-            <input type="number" step="0.01" min="0.01" id="transAmount" required placeholder="0,00" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none">
+            <input type="number" step="0.01" min="0.01" id="transAmount" required placeholder="0,00" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Data Competência</label>
-            <input type="date" id="transDate" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none">
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Data</label>
+            <input type="date" id="transDate" required class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
           </div>
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Categoria</label>
-          <select id="transCategory" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none"></select>
+          <select id="transCategory" required class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none"></select>
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 mt-2">
-          <button type="button" onclick="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">Cancelar</button>
-          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-sm">Salvar Registro</button>
+          <button type="button" onclick="closeModal()" class="px-4 py-2.5 text-xs font-semibold text-slate-500">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 text-xs font-bold bg-brand-600 active:scale-95 text-white rounded-xl">Salvar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: PROGRAMAR RECORRÊNCIA -->
-  <div id="modalRecurring" class="fixed inset-0 z-50 bg-slate-900/40 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col gap-4">
-      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-        <h3 id="modalRecurringTitle" class="text-base font-bold text-slate-900 dark:text-white">Programar Recorrência</h3>
-        <button onclick="closeRecurringModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white">
+  <!-- MODAL: PROGRAMAR RECORRÊNCIA (BOTTOM SHEET EM MOBILE) -->
+  <div id="modalRecurring" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 animate-in slide-in-from-bottom sm:zoom-in duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden"></div>
+      
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+        <h3 id="modalRecurringTitle" class="text-sm font-bold text-slate-900 dark:text-white">Programar Recorrência</h3>
+        <button onclick="closeRecurringModal()" class="p-1 text-slate-400">
           <i class="ph-bold ph-x text-lg"></i>
         </button>
       </div>
 
-      <form id="formRecurring" onsubmit="saveRecurring(event)" class="flex flex-col gap-3.5">
+      <form id="formRecurring" onsubmit="saveRecurring(event)" class="flex flex-col gap-3">
         <input type="hidden" id="recurId">
 
         <div>
           <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Tipo</label>
           <div class="grid grid-cols-2 gap-2">
-            <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-emerald-50 dark:has-[:checked]:bg-emerald-950/60 has-[:checked]:border-emerald-500 has-[:checked]:text-emerald-700 dark:has-[:checked]:text-emerald-300 font-semibold text-xs">
+            <label class="flex items-center justify-center py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-emerald-50 dark:has-[:checked]:bg-emerald-950/60 has-[:checked]:border-emerald-500 text-xs font-bold">
               <input type="radio" name="recurType" value="income" class="hidden" checked onchange="updateRecurCategorySelect()">
               <span>Receita</span>
             </label>
-            <label class="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-rose-50 dark:has-[:checked]:bg-rose-950/60 has-[:checked]:border-rose-500 has-[:checked]:text-rose-700 dark:has-[:checked]:text-rose-300 font-semibold text-xs">
+            <label class="flex items-center justify-center py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-rose-50 dark:has-[:checked]:bg-rose-950/60 has-[:checked]:border-rose-500 text-xs font-bold">
               <input type="radio" name="recurType" value="expense" class="hidden" onchange="updateRecurCategorySelect()">
               <span>Despesa</span>
             </label>
@@ -556,19 +563,19 @@
 
         <div>
           <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
-          <input type="text" id="recurDesc" required placeholder="Ex: Aluguel, Supermercado semanal..." class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none">
+          <input type="text" id="recurDesc" required placeholder="Ex: Aluguer, Salário..." class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-2.5">
           <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Valor Unitário (R$)</label>
-            <input type="number" step="0.01" min="0.01" id="recurAmount" required placeholder="0,00" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none">
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Valor Unitário</label>
+            <input type="number" step="0.01" min="0.01" id="recurAmount" required placeholder="0,00" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Frequência</label>
-            <select id="recurFrequency" onchange="onFrequencyChange()" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none">
-              <option value="monthly">Mensal (Dia fixo)</option>
-              <option value="weekly">Semanal (Toda semana)</option>
+            <select id="recurFrequency" onchange="onFrequencyChange()" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+              <option value="monthly">Mensal</option>
+              <option value="weekly">Semanal</option>
               <option value="biweekly">Quinzenal</option>
               <option value="annual">Anual</option>
             </select>
@@ -577,12 +584,12 @@
 
         <div id="fieldDueDay">
           <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Dia do Vencimento (1 a 31)</label>
-          <input type="number" id="recurDueDay" min="1" max="31" value="5" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none">
+          <input type="number" id="recurDueDay" min="1" max="31" value="5" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
         </div>
 
         <div id="fieldWeekday" class="hidden">
           <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Dia da Semana</label>
-          <select id="recurWeekday" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none">
+          <select id="recurWeekday" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
             <option value="0">Domingo</option>
             <option value="1">Segunda-feira</option>
             <option value="2">Terça-feira</option>
@@ -595,76 +602,60 @@
 
         <div>
           <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Categoria</label>
-          <select id="recurCategory" required class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none"></select>
+          <select id="recurCategory" required class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none"></select>
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 mt-2">
-          <button type="button" onclick="closeRecurringModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">Cancelar</button>
-          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-sm">Salvar Regra</button>
+          <button type="button" onclick="closeRecurringModal()" class="px-4 py-2.5 text-xs font-semibold text-slate-500">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 text-xs font-bold bg-brand-600 active:scale-95 text-white rounded-xl">Guardar Regra</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: PERFIL DO USUÁRIO CONECTADO -->
-  <div id="modalUser" class="fixed inset-0 z-50 bg-slate-900/40 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col gap-4 text-center">
+  <!-- MODAL: PERFIL DO UTILIZADOR -->
+  <div id="modalUser" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-sm w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 text-center">
+      <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden"></div>
       <div class="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-lg mx-auto">
         <i class="ph-bold ph-user-check"></i>
       </div>
       <div>
-        <p class="text-xs text-slate-500 dark:text-slate-400">Conectado com:</p>
+        <p class="text-xs text-slate-400">Ligado com:</p>
         <p id="currentUserEmail" class="text-sm font-bold text-slate-900 dark:text-white break-all"></p>
       </div>
       <div class="flex flex-col gap-2 mt-2">
-        <button onclick="signOut()" class="w-full py-2.5 text-xs font-bold rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900">Sair da Conta</button>
-        <button onclick="closeUserModal()" class="w-full py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">Fechar</button>
+        <button onclick="exportCSV()" class="sm:hidden w-full py-3 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700">Exportar CSV</button>
+        <button onclick="openResetModal()" class="sm:hidden w-full py-3 text-xs font-bold rounded-xl border border-amber-200 text-amber-600">Gestor de Reset</button>
+        <button onclick="signOut()" class="w-full py-3 text-xs font-bold rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800">Terminar Sessão</button>
+        <button onclick="closeUserModal()" class="w-full py-2.5 text-xs font-semibold text-slate-400">Fechar</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: RESET DE DADOS -->
-  <div id="modalReset" class="fixed inset-0 z-50 bg-slate-900/40 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col gap-4 text-center">
+  <div id="modalReset" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-sm w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 text-center">
+      <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden"></div>
       <div class="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto text-2xl">
         <i class="ph-bold ph-warning"></i>
       </div>
       <div>
-        <h3 class="text-base font-bold text-slate-900 dark:text-white">Gerenciador de Reset</h3>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Deseja limpar todos os lançamentos da sua conta?</p>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Eliminar Dados</h3>
+        <p class="text-xs text-slate-400 mt-1">Deseja apagar todos os lançamentos registados nesta conta?</p>
       </div>
-
-      <div class="flex flex-col gap-2 pt-2">
-        <button onclick="clearAllData()" class="w-full py-2.5 px-3 text-xs font-bold rounded-xl bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 transition">Zerar Minhas Transações</button>
-        <button onclick="closeResetModal()" class="w-full py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">Cancelar</button>
+      <div class="flex flex-col gap-2 pt-1">
+        <button onclick="clearAllData()" class="w-full py-3 text-xs font-bold rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800">Sim, Zerar Tudo</button>
+        <button onclick="closeResetModal()" class="w-full py-2.5 text-xs font-semibold text-slate-400">Cancelar</button>
       </div>
     </div>
   </div>
 
-  <!-- SCRIPT PRINCIPAL -->
+  <!-- SCRIPTS PRINCIPAIS -->
   <script>
     const CATEGORIES = {
-      income: [
-        'Vendas',
-        'Freelance',
-        'Doação',
-        'Bonificação / Extra',
-        'Salário',
-        'Serviços / Manutenção',
-        'Investimentos',
-        'Outros'
-      ],
-      expense: [
-        'Gasto Imprevisto / Esporádico',
-        'Moradia / Aluguel',
-        'Supermercado',
-        'Transporte / Combustível',
-        'Saúde',
-        'Educação',
-        'Lazer',
-        'Assinaturas',
-        'Outros'
-      ]
+      income: ['Vendas', 'Freelance', 'Doação', 'Bonificação / Extra', 'Salário', 'Serviços / Manutenção', 'Investimentos', 'Outros'],
+      expense: ['Gasto Imprevisto / Esporádico', 'Moradia / Aluguel', 'Supermercado', 'Transporte / Combustível', 'Saúde', 'Educação', 'Lazer', 'Assinaturas', 'Outros']
     };
 
     let transactions = [];
@@ -678,7 +669,6 @@
     let chartHistory = null;
     let chartCategory = null;
 
-    // --- CONTROLE DE TEMA (DARK / LIGHT MODE) ---
     function initTheme() {
       const savedTheme = localStorage.getItem('finflow_theme');
       const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -729,7 +719,6 @@
       document.getElementById('monthSelector').value = currentPeriod;
     }
 
-    // --- CONTROLE DE LOGIN / SESSÃO ---
     async function checkAuthGate() {
       if (!window.supabaseClient) {
         showAuthGate();
@@ -760,18 +749,13 @@
           }
         });
       } catch (err) {
-        console.error('Erro ao verificar sessão:', err);
+        console.error('Erro de sessão:', err);
         showAuthGate();
       }
     }
 
-    function showAuthGate() {
-      document.getElementById('authGateOverlay').classList.remove('hidden');
-    }
-
-    function hideAuthGate() {
-      document.getElementById('authGateOverlay').classList.add('hidden');
-    }
+    function showAuthGate() { document.getElementById('authGateOverlay').classList.remove('hidden'); }
+    function hideAuthGate() { document.getElementById('authGateOverlay').classList.add('hidden'); }
 
     function setGateAuthMode(mode) {
       gateAuthMode = mode;
@@ -780,32 +764,29 @@
       const submit = document.getElementById('btnGateAuthSubmit');
 
       if (mode === 'login') {
-        tLog.className = 'flex-1 py-1.5 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition';
-        tReg.className = 'flex-1 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 transition';
+        tLog.className = 'flex-1 py-2.5 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition';
+        tReg.className = 'flex-1 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 transition';
         submit.textContent = 'Entrar no FinFlow';
       } else {
-        tReg.className = 'flex-1 py-1.5 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition';
-        tLog.className = 'flex-1 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 transition';
+        tReg.className = 'flex-1 py-2.5 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition';
+        tLog.className = 'flex-1 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 transition';
         submit.textContent = 'Criar Minha Conta';
       }
     }
 
     async function handleGateAuthSubmit(e) {
       e.preventDefault();
-      if (!window.supabaseClient) {
-        alert('A chave do Supabase não foi inserida no código.');
-        return;
-      }
+      if (!window.supabaseClient) return alert('Configuração do Supabase pendente.');
 
       const email = document.getElementById('gateAuthEmail').value.trim();
       const password = document.getElementById('gateAuthPassword').value;
 
       try {
         if (gateAuthMode === 'login') {
-          const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+          const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
         } else {
-          const { data, error } = await window.supabaseClient.auth.signUp({ email, password });
+          const { error } = await window.supabaseClient.auth.signUp({ email, password });
           if (error) throw error;
           alert('Conta criada com sucesso! Faça login para continuar.');
           setGateAuthMode('login');
@@ -815,7 +796,6 @@
       }
     }
 
-    // --- CARREGAMENTO DE DADOS DO BANCO ---
     async function fetchCloudData() {
       if (!window.supabaseClient || !currentUser) return;
       try {
@@ -833,13 +813,12 @@
         recurringRules = recData || [];
         renderApp();
       } catch (err) {
-        console.error('Erro ao buscar dados na nuvem:', err);
+        console.error('Erro na busca cloud:', err);
       }
     }
 
     function subscribeRealtime() {
-      if (!window.supabaseClient || !currentUser) return;
-      if (realtimeChannel) return;
+      if (!window.supabaseClient || !currentUser || realtimeChannel) return;
 
       realtimeChannel = window.supabaseClient
         .channel('realtime_finflow')
@@ -848,10 +827,8 @@
         .subscribe();
     }
 
-    // --- SISTEMA DE NOTIFICAÇÕES (APENAS ENTRADAS AUTOMÁTICAS) ---
     function toggleNotificationsDropdown() {
-      const dd = document.getElementById('notificationsDropdown');
-      dd.classList.toggle('hidden');
+      document.getElementById('notificationsDropdown').classList.toggle('hidden');
     }
 
     function renderNotifications() {
@@ -870,35 +847,26 @@
       emptyState.classList.add('hidden');
 
       const unreadCount = autoTransactions.filter(t => !readNotifications.includes(t.id)).length;
-      if (unreadCount > 0) {
-        badge.classList.remove('hidden');
-      } else {
-        badge.classList.add('hidden');
-      }
+      badge.classList.toggle('hidden', unreadCount === 0);
 
-      autoTransactions.slice(0, 15).forEach(item => {
+      autoTransactions.slice(0, 10).forEach(item => {
         const isIncome = item.type === 'income';
         const isUnread = !readNotifications.includes(item.id);
         const dateHourDisplay = formatFullDateTime(item.created_at || item.date);
 
         const row = document.createElement('div');
-        row.className = `p-3 flex items-start gap-3 transition ${isUnread ? 'bg-emerald-50/40 dark:bg-emerald-950/30' : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'}`;
+        row.className = `p-2.5 flex items-start gap-2.5 transition ${isUnread ? 'bg-emerald-50/50 dark:bg-emerald-950/30' : ''}`;
         row.innerHTML = `
-          <div class="w-7 h-7 rounded-lg mt-0.5 flex-shrink-0 flex items-center justify-center text-xs font-bold ${isIncome ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'}">
+          <div class="w-6 h-6 rounded-lg mt-0.5 flex-shrink-0 flex items-center justify-center text-[10px] font-bold ${isIncome ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
             <i class="ph-bold ${isIncome ? 'ph-arrow-up-right' : 'ph-arrow-down-left'}"></i>
           </div>
           <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between gap-1">
-              <span class="text-[10px] font-bold uppercase tracking-wider ${isIncome ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}">
-                ${isIncome ? 'Receita Recorrente' : 'Despesa Recorrente'}
-              </span>
-              <span class="text-[10px] text-slate-400 font-medium">${dateHourDisplay}</span>
+            <div class="flex items-center justify-between text-[10px]">
+              <span class="font-bold ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">${isIncome ? 'Receita Auto' : 'Despesa Auto'}</span>
+              <span class="text-slate-400 font-mono">${dateHourDisplay}</span>
             </div>
-            <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate mt-0.5">${escapeHtml(item.description)}</p>
-            <div class="flex items-center justify-between mt-1 text-[11px]">
-              <span class="text-slate-500 dark:text-slate-400">${escapeHtml(item.category)}</span>
-              <span class="font-bold ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${isIncome ? '+' : '-'} ${formatCurrency(item.amount)}</span>
-            </div>
+            <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">${escapeHtml(item.description)}</p>
+            <span class="text-xs font-black ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">${isIncome ? '+' : '-'} ${formatCurrency(item.amount)}</span>
           </div>
         `;
         listContainer.appendChild(row);
@@ -912,7 +880,6 @@
       renderNotifications();
     }
 
-    // --- DIAS DA SEMANA E RECORRÊNCIA ---
     function getWeekdayDatesInMonth(year, month, weekday) {
       const dates = [];
       const date = new Date(year, month - 1, 1);
@@ -929,9 +896,7 @@
     }
 
     function getRecurrenceDatesForMonth(rule, year, month) {
-      if (rule.frequency === 'weekly') {
-        return getWeekdayDatesInMonth(year, month, parseInt(rule.weekday));
-      }
+      if (rule.frequency === 'weekly') return getWeekdayDatesInMonth(year, month, parseInt(rule.weekday));
       if (rule.frequency === 'biweekly') {
         const d1 = String(rule.due_day || 5).padStart(2, '0');
         const d2 = String(Math.min(30, (rule.due_day || 5) + 15)).padStart(2, '0');
@@ -943,7 +908,6 @@
       return [`${year}-${mo}-${d}`];
     }
 
-    // --- RENDERIZAÇÃO GERAL ---
     function renderApp() {
       renderKPIs();
       renderTransactionHistory();
@@ -955,27 +919,17 @@
 
     function getFilteredTransactions() {
       let filtered = [...transactions];
-      if (currentPeriod) {
-        filtered = filtered.filter(t => t.date && t.date.startsWith(currentPeriod));
-      }
+      if (currentPeriod) filtered = filtered.filter(t => t.date && t.date.startsWith(currentPeriod));
 
       const q = document.getElementById('searchFilter').value.toLowerCase().trim();
-      if (q) {
-        filtered = filtered.filter(t => t.description.toLowerCase().includes(q) || t.category.toLowerCase().includes(q));
-      }
+      if (q) filtered = filtered.filter(t => t.description.toLowerCase().includes(q) || t.category.toLowerCase().includes(q));
 
       const origin = document.getElementById('originFilter').value;
-      if (origin === 'avulso') {
-        filtered = filtered.filter(t => !t.recurring_id);
-      } else if (origin === 'recorrente') {
-        filtered = filtered.filter(t => !!t.recurring_id);
-      }
+      if (origin === 'avulso') filtered = filtered.filter(t => !t.recurring_id);
+      else if (origin === 'recorrente') filtered = filtered.filter(t => !!t.recurring_id);
 
       const type = document.getElementById('typeFilter').value;
       if (type !== 'all') filtered = filtered.filter(t => t.type === type);
-
-      const cat = document.getElementById('categoryFilter').value;
-      if (cat !== 'all') filtered = filtered.filter(t => t.category === cat);
 
       return filtered;
     }
@@ -986,14 +940,14 @@
 
       const balStatus = document.getElementById('cardBalanceStatus');
       if (generalBalance > 0) {
-        balStatus.textContent = 'Saldo positivo consolidado';
-        balStatus.className = 'text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1';
+        balStatus.textContent = 'Positivo';
+        balStatus.className = 'text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5 truncate';
       } else if (generalBalance < 0) {
-        balStatus.textContent = 'Saldo devedor consolidado';
-        balStatus.className = 'text-xs text-rose-600 dark:text-rose-400 font-semibold mt-1';
+        balStatus.textContent = 'Devedor';
+        balStatus.className = 'text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-0.5 truncate';
       } else {
-        balStatus.textContent = 'Saldo neutro / zerado';
-        balStatus.className = 'text-xs text-slate-500 dark:text-slate-400 mt-1';
+        balStatus.textContent = 'Neutro';
+        balStatus.className = 'text-[11px] text-slate-400 mt-0.5 truncate';
       }
 
       const monthTx = currentPeriod ? transactions.filter(t => t.date.startsWith(currentPeriod)) : transactions;
@@ -1006,10 +960,7 @@
       document.getElementById('cardTotalExpense').textContent = formatCurrency(monthExpense);
       document.getElementById('cardExpenseCount').textContent = `${monthTx.filter(t => t.type === 'expense').length} lançamentos`;
 
-      let pendingExp = 0;
-      let pendingInc = 0;
-      let pendingCount = 0;
-
+      let pendingExp = 0, pendingInc = 0, pendingCount = 0;
       if (currentPeriod) {
         const [y, m] = currentPeriod.split('-').map(Number);
         recurringRules.forEach(rule => {
@@ -1025,17 +976,13 @@
         });
       }
 
-      document.getElementById('cardPendingExpense').textContent = formatCurrency(pendingExp);
-      document.getElementById('cardPendingIncome').textContent = formatCurrency(pendingInc);
-      document.getElementById('cardPendingText').textContent = `${pendingCount} lançamento(s) pendente(s)`;
+      document.getElementById('cardPendingExpense').textContent = `Desp: ${formatCurrency(pendingExp)}`;
+      document.getElementById('cardPendingIncome').textContent = `Rec: ${formatCurrency(pendingInc)}`;
+      document.getElementById('cardPendingText').textContent = `${pendingCount} pendente(s) no mês`;
 
       const badge = document.getElementById('badgePendingCount');
-      if (pendingCount > 0) {
-        badge.textContent = pendingCount;
-        badge.classList.remove('hidden');
-      } else {
-        badge.classList.add('hidden');
-      }
+      badge.textContent = pendingCount;
+      badge.classList.toggle('hidden', pendingCount === 0);
     }
 
     function renderTransactionHistory() {
@@ -1061,65 +1008,54 @@
         const valColor = isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400';
         const badgeBg = isIncome ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300';
         const originBadge = isAvulso 
-          ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300"><i class="ph-bold ph-lightning"></i> Avulso</span>'
-          : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"><i class="ph-bold ph-robot"></i> Automático</span>';
+          ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">Avulso</span>'
+          : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">Auto</span>';
 
         const dateHourDisplay = formatFullDateTime(item.created_at || item.date);
 
+        // Desktop
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-800/50 transition border-b border-slate-100 dark:border-slate-800';
         tr.innerHTML = `
           <td class="py-3 px-4">${originBadge}</td>
-          <td class="py-3 px-4">
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeBg}">
-              <i class="ph-bold ${isIncome ? 'ph-arrow-up-right' : 'ph-arrow-down-left'}"></i>
-              ${isIncome ? 'Receita' : 'Despesa'}
-            </span>
-          </td>
+          <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeBg}">${isIncome ? 'Receita' : 'Despesa'}</span></td>
           <td class="py-3 px-4 font-semibold text-slate-800 dark:text-slate-100">${escapeHtml(item.description)}</td>
           <td class="py-3 px-4 text-slate-500 dark:text-slate-400">${escapeHtml(item.category)}</td>
-          <td class="py-3 px-4 text-slate-500 dark:text-slate-400 font-mono text-[11px]">${dateHourDisplay}</td>
+          <td class="py-3 px-4 text-slate-400 font-mono text-[11px]">${dateHourDisplay}</td>
           <td class="py-3 px-4 text-right font-bold ${valColor}">${formattedVal}</td>
           <td class="py-3 px-4 text-center">
-            <div class="flex items-center justify-center gap-1.5">
-              <button onclick="editTransaction('${item.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-slate-800" title="Editar">
-                <i class="ph-bold ph-pencil-simple text-sm"></i>
-              </button>
-              <button onclick="deleteTransaction('${item.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800" title="Excluir">
-                <i class="ph-bold ph-trash text-sm"></i>
-              </button>
-            </div>
+            <button onclick="editTransaction('${item.id}')" class="p-1 text-slate-400 hover:text-brand-600"><i class="ph-bold ph-pencil-simple"></i></button>
+            <button onclick="deleteTransaction('${item.id}')" class="p-1 text-slate-400 hover:text-rose-600"><i class="ph-bold ph-trash"></i></button>
           </td>
         `;
         tBody.appendChild(tr);
 
+        // Mobile Card Compacto
         const card = document.createElement('div');
-        card.className = 'p-3 flex items-center justify-between gap-3';
+        card.className = 'p-3 flex items-center justify-between gap-3 active:bg-slate-50 dark:active:bg-slate-800/40 transition';
         card.innerHTML = `
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm ${badgeBg}">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-sm ${badgeBg}">
               <i class="ph-bold ${isIncome ? 'ph-arrow-up-right' : 'ph-arrow-down-left'}"></i>
             </div>
-            <div>
-              <div class="flex items-center gap-1.5">
-                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">${escapeHtml(item.description)}</p>
-                ${isAvulso ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 font-bold">Avulso</span>' : '<span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-300 font-bold">Auto</span>'}
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">${escapeHtml(item.description)}</p>
+              <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
+                <span>${escapeHtml(item.category)}</span>
+                <span>•</span>
+                <span>${dateHourDisplay}</span>
               </div>
-              <span class="text-[10px] text-slate-400 dark:text-slate-500">${escapeHtml(item.category)} • ${dateHourDisplay}</span>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold ${valColor}">${formattedVal}</span>
-            <button onclick="deleteTransaction('${item.id}')" class="text-slate-400 hover:text-rose-600 p-1">
-              <i class="ph-bold ph-trash text-sm"></i>
-            </button>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <span class="text-xs font-black ${valColor}">${formattedVal}</span>
+            <button onclick="editTransaction('${item.id}')" class="p-1.5 text-slate-400"><i class="ph-bold ph-dots-three-vertical text-base"></i></button>
           </div>
         `;
         mList.appendChild(card);
       });
     }
 
-    // --- RENDERIZAÇÃO DA SEÇÃO AVULSOS ---
     function renderAvulsosSection() {
       const avulsos = transactions.filter(t => !t.recurring_id && (!currentPeriod || t.date.startsWith(currentPeriod)));
       const container = document.getElementById('containerAvulsosList');
@@ -1131,7 +1067,7 @@
       container.innerHTML = '';
 
       const totalBalanceAvulso = avulsos.reduce((acc, t) => acc + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0);
-      labelTotal.textContent = `Saldo Avulso: ${formatCurrency(totalBalanceAvulso)}`;
+      labelTotal.textContent = `Total: ${formatCurrency(totalBalanceAvulso)}`;
 
       if (avulsos.length === 0) {
         empty.classList.remove('hidden');
@@ -1143,25 +1079,20 @@
         const isIncome = item.type === 'income';
         const dateHourDisplay = formatFullDateTime(item.created_at || item.date);
         const el = document.createElement('div');
-        el.className = 'py-3 flex items-center justify-between gap-3';
+        el.className = 'py-2.5 flex items-center justify-between gap-2';
         el.innerHTML = `
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl ${isIncome ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400'} flex items-center justify-center font-bold text-sm">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-lg ${isIncome ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-600'} flex items-center justify-center font-bold text-xs flex-shrink-0">
               <i class="ph-bold ${isIncome ? 'ph-tag' : 'ph-warning-circle'}"></i>
             </div>
-            <div>
-              <p class="text-xs font-bold text-slate-800 dark:text-slate-100">${escapeHtml(item.description)}</p>
-              <p class="text-[10px] text-slate-400 dark:text-slate-500">${escapeHtml(item.category)} • ${dateHourDisplay}</p>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">${escapeHtml(item.description)}</p>
+              <p class="text-[10px] text-slate-400">${escapeHtml(item.category)} • ${dateHourDisplay}</p>
             </div>
           </div>
-          <div class="flex items-center gap-3">
-            <span class="text-xs font-bold ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${isIncome ? '+' : '-'} ${formatCurrency(item.amount)}</span>
-            <button onclick="editTransaction('${item.id}')" class="text-slate-400 hover:text-indigo-600 p-1" title="Editar">
-              <i class="ph-bold ph-pencil-simple text-sm"></i>
-            </button>
-            <button onclick="deleteTransaction('${item.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="Excluir">
-              <i class="ph-bold ph-trash text-sm"></i>
-            </button>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-xs font-bold ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">${isIncome ? '+' : '-'} ${formatCurrency(item.amount)}</span>
+            <button onclick="editTransaction('${item.id}')" class="text-slate-400 p-1"><i class="ph-bold ph-pencil-simple"></i></button>
           </div>
         `;
         container.appendChild(el);
@@ -1201,8 +1132,8 @@
           const dayNum = dateStr.split('-')[2];
           return `
             <button onclick="${already ? '' : `fulfillSingleOccurrence('${rule.id}', '${dateStr}')`}" 
-                    class="px-2 py-1 rounded text-[11px] font-semibold border transition ${already ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 cursor-default' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-brand-50 dark:hover:bg-slate-700 hover:border-brand-500 text-slate-700 dark:text-slate-300'}">
-              ${already ? '✓' : '+'} Dia ${dayNum}
+                    class="px-2 py-1.5 rounded-lg text-[10px] font-bold border transition ${already ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'}">
+              ${already ? '✓' : '+'} ${dayNum}
             </button>
           `;
         }).join('');
@@ -1211,40 +1142,36 @@
         const allDone = fulfilledCount >= totalExpected;
 
         const card = document.createElement('div');
-        card.className = 'bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-4';
+        card.className = 'bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-3';
         card.innerHTML = `
           <div>
-            <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center justify-between gap-1">
               <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isIncome ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'} uppercase">
                 ${isIncome ? 'Receita' : 'Despesa'} • ${translateFreq(rule.frequency)}
               </span>
               <div class="flex items-center gap-1">
-                <button onclick="editRecurring('${rule.id}')" class="p-1 text-slate-400 hover:text-brand-600 rounded" title="Editar">
-                  <i class="ph-bold ph-pencil-simple text-sm"></i>
-                </button>
-                <button onclick="deleteRecurring('${rule.id}')" class="p-1 text-slate-400 hover:text-rose-600 rounded" title="Excluir">
-                  <i class="ph-bold ph-trash text-sm"></i>
-                </button>
+                <button onclick="editRecurring('${rule.id}')" class="p-1 text-slate-400"><i class="ph-bold ph-pencil-simple"></i></button>
+                <button onclick="deleteRecurring('${rule.id}')" class="p-1 text-slate-400"><i class="ph-bold ph-trash"></i></button>
               </div>
             </div>
 
             <div class="mt-2">
-              <h4 class="text-sm font-bold text-slate-900 dark:text-white">${escapeHtml(rule.description)}</h4>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${escapeHtml(rule.category)}</p>
+              <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">${escapeHtml(rule.description)}</h4>
+              <p class="text-[11px] text-slate-400">${escapeHtml(rule.category)}</p>
             </div>
 
-            <div class="mt-3 flex items-baseline justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-              <span class="text-xs text-slate-400">Valor Unitário:</span>
-              <span class="text-base font-black ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${formatCurrency(rule.amount)}</span>
+            <div class="mt-2 flex items-baseline justify-between border-b border-slate-100 dark:border-slate-800 pb-1.5">
+              <span class="text-[11px] text-slate-400">Valor Unitário:</span>
+              <span class="text-sm font-black ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${formatCurrency(rule.amount)}</span>
             </div>
           </div>
 
           <div>
-            <div class="flex items-center justify-between text-xs mb-1.5">
-              <span class="font-semibold text-slate-700 dark:text-slate-300">Ocorrências no Mês:</span>
-              <span class="text-[11px] font-bold ${allDone ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}">${fulfilledCount} de ${totalExpected} lançadas</span>
+            <div class="flex items-center justify-between text-[11px] mb-1.5">
+              <span class="text-slate-500">Ocorrências:</span>
+              <span class="font-bold ${allDone ? 'text-emerald-600' : 'text-amber-600'}">${fulfilledCount}/${totalExpected}</span>
             </div>
-            <div class="flex flex-wrap gap-1.5">
+            <div class="flex flex-wrap gap-1">
               ${occurrencesHtml}
             </div>
           </div>
@@ -1269,10 +1196,9 @@
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const yr = d.getFullYear();
         const mo = String(d.getMonth() + 1).padStart(2, '0');
-        const key = `${yr}-${mo}`;
-        labels.push(d.toLocaleString('pt-BR', { month: 'short' }) + '/' + String(yr).slice(-2));
+        labels.push(d.toLocaleString('pt-BR', { month: 'short' }));
 
-        const monthTxs = transactions.filter(t => t.date && t.date.startsWith(key));
+        const monthTxs = transactions.filter(t => t.date && t.date.startsWith(`${yr}-${mo}`));
         dataInc.push(monthTxs.filter(t => t.type === 'income').reduce((a, b) => a + Number(b.amount), 0));
         dataExp.push(monthTxs.filter(t => t.type === 'expense').reduce((a, b) => a + Number(b.amount), 0));
       }
@@ -1290,22 +1216,10 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { 
-            legend: { 
-              position: 'bottom', 
-              labels: { boxWidth: 10, font: { size: 10 }, color: textColor } 
-            } 
-          },
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 }, color: textColor } } },
           scales: { 
-            y: { 
-              beginAtZero: true, 
-              grid: { color: gridColor },
-              ticks: { color: textColor }
-            }, 
-            x: { 
-              grid: { display: false },
-              ticks: { color: textColor }
-            } 
+            y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor, font: { size: 9 } } }, 
+            x: { grid: { display: false }, ticks: { color: textColor, font: { size: 9 } } } 
           }
         }
       });
@@ -1339,19 +1253,13 @@
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { 
-              legend: { 
-                position: 'bottom', 
-                labels: { boxWidth: 10, font: { size: 10 }, color: textColor } 
-              } 
-            },
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 }, color: textColor } } },
             cutout: '70%'
           }
         });
       }
     }
 
-    // --- OPERAÇÕES CRUD TRANSAÇÕES ---
     async function saveTransaction(e) {
       e.preventDefault();
       const id = document.getElementById('transId').value;
@@ -1371,17 +1279,15 @@
         created_at: new Date().toISOString()
       };
 
-      if (id) {
-        await window.supabaseClient.from('transactions').update(newTx).eq('id', id);
-      } else {
-        await window.supabaseClient.from('transactions').insert([newTx]);
-      }
+      if (id) await window.supabaseClient.from('transactions').update(newTx).eq('id', id);
+      else await window.supabaseClient.from('transactions').insert([newTx]);
+
       await fetchCloudData();
       closeModal();
     }
 
     async function deleteTransaction(id) {
-      if (!confirm('Deseja realmente excluir este lançamento?')) return;
+      if (!confirm('Eliminar este lançamento?')) return;
       await window.supabaseClient.from('transactions').delete().eq('id', id);
       await fetchCloudData();
     }
@@ -1395,7 +1301,6 @@
       
       const originVal = item.recurring_id ? 'fixo' : 'avulso';
       document.querySelector(`input[name="transOrigin"][value="${originVal}"]`).checked = true;
-
       document.querySelector(`input[name="transType"][value="${item.type}"]`).checked = true;
       updateCategorySelect();
 
@@ -1407,7 +1312,6 @@
       document.getElementById('modalTransaction').classList.remove('hidden');
     }
 
-    // --- OPERAÇÕES RECORRÊNCIA ---
     async function saveRecurring(e) {
       e.preventDefault();
       const id = document.getElementById('recurId').value;
@@ -1430,17 +1334,15 @@
         user_id: currentUser.id
       };
 
-      if (id) {
-        await window.supabaseClient.from('recurring_rules').update(rule).eq('id', id);
-      } else {
-        await window.supabaseClient.from('recurring_rules').insert([rule]);
-      }
+      if (id) await window.supabaseClient.from('recurring_rules').update(rule).eq('id', id);
+      else await window.supabaseClient.from('recurring_rules').insert([rule]);
+
       await fetchCloudData();
       closeRecurringModal();
     }
 
     async function deleteRecurring(id) {
-      if (!confirm('Deseja excluir esta regra de recorrência?')) return;
+      if (!confirm('Eliminar esta regra?')) return;
       await window.supabaseClient.from('recurring_rules').delete().eq('id', id);
       await fetchCloudData();
     }
@@ -1449,7 +1351,7 @@
       const item = recurringRules.find(r => r.id === id);
       if (!item) return;
 
-      document.getElementById('modalRecurringTitle').textContent = 'Editar Programação';
+      document.getElementById('modalRecurringTitle').textContent = 'Editar Regra';
       document.getElementById('recurId').value = item.id;
       document.querySelector(`input[name="recurType"][value="${item.type}"]`).checked = true;
       updateRecurCategorySelect();
@@ -1485,7 +1387,7 @@
     }
 
     async function fulfillAllPendingCurrentMonth() {
-      if (!currentPeriod) return alert('Selecione um mês específico para efetivar as programações.');
+      if (!currentPeriod) return alert('Selecione um mês.');
       const [y, m] = currentPeriod.split('-').map(Number);
       const toInsert = [];
 
@@ -1508,17 +1410,12 @@
         });
       });
 
-      if (toInsert.length === 0) {
-        alert('Não há ocorrências pendentes para efetivar neste mês.');
-        return;
-      }
-
+      if (toInsert.length === 0) return alert('Sem pendências para o mês.');
       await window.supabaseClient.from('transactions').insert(toInsert);
       await fetchCloudData();
-      alert(`${toInsert.length} ocorrência(s) efetivada(s) com sucesso!`);
+      alert(`${toInsert.length} ocorrência(s) lançada(s)!`);
     }
 
-    // --- CONTROLE DE USUÁRIO / MODAIS ---
     function handleAuthClick() {
       if (currentUser) {
         document.getElementById('currentUserEmail').textContent = currentUser.email;
@@ -1528,9 +1425,7 @@
       }
     }
 
-    function closeUserModal() {
-      document.getElementById('modalUser').classList.add('hidden');
-    }
+    function closeUserModal() { document.getElementById('modalUser').classList.add('hidden'); }
 
     async function signOut() {
       if (realtimeChannel && window.supabaseClient) {
@@ -1548,11 +1443,8 @@
 
     function updateAuthHeader() {
       const label = document.getElementById('labelAuthStatus');
-      if (currentUser) {
-        label.textContent = currentUser.email.split('@')[0];
-      } else {
-        label.textContent = 'Minha Conta';
-      }
+      if (currentUser) label.textContent = currentUser.email.split('@')[0];
+      else label.textContent = 'Conta';
     }
 
     function switchTab(tab) {
@@ -1564,23 +1456,34 @@
       const tA = document.getElementById('tabAvulsos');
       const tR = document.getElementById('tabRecur');
 
+      const mD = document.getElementById('mTabDash');
+      const mA = document.getElementById('mTabAvulsos');
+      const mR = document.getElementById('mTabRecur');
+
       vD.classList.add('hidden');
       vA.classList.add('hidden');
       vR.classList.add('hidden');
 
-      tD.className = 'px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2';
-      tA.className = 'px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2';
-      tR.className = 'px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2';
+      [tD, tA, tR].forEach(b => {
+        if (b) b.className = 'px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2';
+      });
+
+      [mD, mA, mR].forEach(b => {
+        if (b) b.className = 'flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500';
+      });
 
       if (tab === 'dashboard') {
         vD.classList.remove('hidden');
-        tD.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-brand-50 dark:bg-emerald-950/40 text-brand-700 dark:text-emerald-300 border border-brand-200 dark:border-emerald-800 flex items-center gap-2';
+        if (tD) tD.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-brand-50 dark:bg-emerald-950/40 text-brand-700 dark:text-emerald-300 border border-brand-200 dark:border-emerald-800 flex items-center gap-2';
+        if (mD) mD.className = 'flex flex-col items-center gap-1 text-brand-600 dark:text-emerald-400';
       } else if (tab === 'avulsos') {
         vA.classList.remove('hidden');
-        tA.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-2';
+        if (tA) tA.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-2';
+        if (mA) mA.className = 'flex flex-col items-center gap-1 text-indigo-600 dark:text-indigo-400';
       } else {
         vR.classList.remove('hidden');
-        tR.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-brand-50 dark:bg-emerald-950/40 text-brand-700 dark:text-emerald-300 border border-brand-200 dark:border-emerald-800 flex items-center gap-2';
+        if (tR) tR.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-brand-50 dark:bg-emerald-950/40 text-brand-700 dark:text-emerald-300 border border-brand-200 dark:border-emerald-800 flex items-center gap-2';
+        if (mR) mR.className = 'flex flex-col items-center gap-1 text-brand-600 dark:text-emerald-400';
       }
     }
 
@@ -1636,7 +1539,6 @@
       const freq = document.getElementById('recurFrequency').value;
       const fDue = document.getElementById('fieldDueDay');
       const fWeek = document.getElementById('fieldWeekday');
-
       if (freq === 'weekly') {
         fDue.classList.add('hidden');
         fWeek.classList.remove('hidden');
@@ -1650,7 +1552,7 @@
     function closeResetModal() { document.getElementById('modalReset').classList.add('hidden'); }
 
     async function clearAllData() {
-      if (!confirm('Deseja apagar definitivamente todos os seus lançamentos?')) return;
+      if (!confirm('Deseja apagar todos os lançamentos?')) return;
       await window.supabaseClient.from('transactions').delete().eq('user_id', currentUser.id);
       await window.supabaseClient.from('recurring_rules').delete().eq('user_id', currentUser.id);
       await fetchCloudData();
@@ -1658,14 +1560,6 @@
     }
 
     function populateCategoryDropdowns() {
-      const catFilter = document.getElementById('categoryFilter');
-      const allCats = [...new Set([...CATEGORIES.income, ...CATEGORIES.expense])];
-      allCats.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
-        catFilter.appendChild(opt);
-      });
       updateCategorySelect();
       updateRecurCategorySelect();
     }
@@ -1695,22 +1589,20 @@
     }
 
     function exportCSV() {
-      if (transactions.length === 0) return alert('Sem dados para exportar.');
-      let csv = 'ID;Tipo;Classificacao;Descricao;Categoria;Data_Competencia;Data_Hora_Registro;Valor\n';
+      if (transactions.length === 0) return alert('Sem dados.');
+      let csv = 'ID;Tipo;Classificacao;Descricao;Categoria;Data;DataHora;Valor\n';
       transactions.forEach(t => {
         const orig = t.recurring_id ? 'Recorrente_Automatico' : 'Avulso';
-        const fullTime = formatFullDateTime(t.created_at || t.date);
-        csv += `"${t.id}";"${t.type}";"${orig}";"${t.description}";"${t.category}";"${t.date}";"${fullTime}";"${t.amount}"\n`;
+        csv += `"${t.id}";"${t.type}";"${orig}";"${t.description}";"${t.category}";"${t.date}";"${formatFullDateTime(t.created_at || t.date)}";"${t.amount}"\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `finflow_export_${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `finflow_${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
     }
 
-    // --- FORMATAÇÕES E UTILITÁRIOS ---
     function formatCurrency(v) {
       return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
@@ -1727,8 +1619,7 @@
       const yr = d.getFullYear();
       const hr = String(d.getHours()).padStart(2, '0');
       const min = String(d.getMinutes()).padStart(2, '0');
-      const sec = String(d.getSeconds()).padStart(2, '0');
-      return `${day}/${mon}/${yr} às ${hr}:${min}:${sec}`;
+      return `${day}/${mon}/${yr} ${hr}:${min}`;
     }
 
     function translateFreq(f) {
