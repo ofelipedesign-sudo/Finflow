@@ -182,7 +182,6 @@
             <span>CSV</span>
           </button>
 
-          <!-- Botão Topo Nova Movimentação -->
           <button onclick="openModal()" class="hidden sm:flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition shadow-sm">
             <i class="ph-bold ph-plus text-base"></i>
             <span>Nova Movimentação</span>
@@ -314,7 +313,7 @@
             </div>
 
             <div class="grid grid-cols-2 sm:flex items-center gap-2">
-              <input type="text" id="searchFilter" oninput="renderApp()" placeholder="Procurar..." class="col-span-2 sm:w-44 px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+              <input type="search" id="searchFilter" name="finflow_search_query" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" oninput="renderApp()" placeholder="Procurar..." class="col-span-2 sm:w-44 px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
 
               <select id="originFilter" onchange="renderApp()" class="text-xs rounded-xl border border-slate-200 dark:border-slate-700 py-2 px-2.5 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
                 <option value="all">Origem</option>
@@ -420,6 +419,7 @@
           </button>
         </div>
 
+        <!-- Lista de Avulsos com Botão de Exclusão (Lixeira) -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
           <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-3">
             <h4 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">Avulsos no Período</h4>
@@ -532,7 +532,7 @@
       </div>
     </div>
 
-    <!-- MODAL: NOVA / EDITAR TRANSAÇÃO (ÚNICO E CENTRALIZADO) -->
+    <!-- MODAL: NOVA / EDITAR TRANSAÇÃO -->
     <div id="modalTransaction" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
       <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 animate-in slide-in-from-bottom sm:zoom-in duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
         <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden"></div>
@@ -602,7 +602,7 @@
       </div>
     </div>
 
-    <!-- MODAL: PROGRAMAR RECORRÊNCIA (ÚNICO E CENTRALIZADO) -->
+    <!-- MODAL: PROGRAMAR RECORRÊNCIA -->
     <div id="modalRecurring" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
       <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 animate-in slide-in-from-bottom sm:zoom-in duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
         <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden"></div>
@@ -839,6 +839,8 @@
     function showAppScreen() {
       document.getElementById('authScreen').classList.add('hidden');
       document.getElementById('appContainer').classList.remove('hidden');
+      const sf = document.getElementById('searchFilter');
+      if (sf) sf.value = '';
     }
 
     function setGateAuthMode(mode) {
@@ -1120,6 +1122,7 @@
 
         const dateHourDisplay = formatFullDateTime(item.created_at || item.date);
 
+        // Desktop
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-800/50 transition border-b border-slate-100 dark:border-slate-800';
         tr.innerHTML = `
@@ -1136,6 +1139,7 @@
         `;
         tBody.appendChild(tr);
 
+        // Mobile
         const card = document.createElement('div');
         card.className = 'p-3 flex items-center justify-between gap-3 active:bg-slate-50 dark:active:bg-slate-800/40 transition';
         card.innerHTML = `
@@ -1161,6 +1165,7 @@
       });
     }
 
+    // --- RENDERIZAÇÃO DA SEÇÃO AVULSOS (COM BOTÕES DE EDITAR E EXCLUIR) ---
     function renderAvulsosSection() {
       const avulsos = transactions.filter(t => !t.recurring_id && (!currentPeriod || t.date.startsWith(currentPeriod)));
       const container = document.getElementById('containerAvulsosList');
@@ -1195,9 +1200,14 @@
               <p class="text-[10px] text-slate-400">${escapeHtml(item.category)} • ${dateHourDisplay}</p>
             </div>
           </div>
-          <div class="flex items-center gap-2 flex-shrink-0">
+          <div class="flex items-center gap-1.5 flex-shrink-0">
             <span class="text-xs font-bold ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">${isIncome ? '+' : '-'} ${formatCurrency(item.amount)}</span>
-            <button onclick="editTransaction('${item.id}')" class="text-slate-400 p-1"><i class="ph-bold ph-pencil-simple"></i></button>
+            <button onclick="editTransaction('${item.id}')" class="text-slate-400 hover:text-brand-600 dark:hover:text-emerald-400 p-1 transition" title="Editar">
+              <i class="ph-bold ph-pencil-simple text-sm"></i>
+            </button>
+            <button onclick="deleteTransaction('${item.id}')" class="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 transition" title="Eliminar lançamento">
+              <i class="ph-bold ph-trash text-sm"></i>
+            </button>
           </div>
         `;
         container.appendChild(el);
@@ -1573,7 +1583,12 @@ ${text.slice(0, 8000)}`;
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 }, color: textColor } } },
+            plugins: { 
+              legend: { 
+                position: 'bottom', 
+                labels: { boxWidth: 10, font: { size: 10 }, color: textColor } 
+              } 
+            },
             cutout: '70%'
           }
         });
