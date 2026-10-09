@@ -67,7 +67,7 @@
       padding-bottom: max(95px, calc(var(--sab) + 105px));
     }
 
-    /* Margem segura inferior exclusiva para janelas modais */
+    /* Margem segura inferior para janelas modais */
     .app-modal-sheet {
       padding-bottom: max(20px, calc(var(--sab) + 24px)) !important;
       max-height: calc(90dvh - var(--sat));
@@ -391,7 +391,7 @@
         <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div>
             <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Lançamentos Avulsos & Extras</h3>
-            <p class="text-xs text-slate-400">Importe sua fatura PDF ou crie lançamentos pontuais.</p>
+            <p class="text-xs text-slate-400">Importe sua fatura PDF ou acompanhe vendas capturadas em tempo real.</p>
           </div>
 
           <div class="flex items-center gap-2">
@@ -562,7 +562,7 @@
       </div>
     </div>
 
-    <!-- MODAL: NOVA / EDITAR TRANSAÇÃO (COM MARGEM SEGURA) -->
+    <!-- MODAL: NOVA / EDITAR TRANSAÇÃO -->
     <div id="modalTransaction" class="fixed inset-0 z-50 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
       <div class="app-modal-sheet bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 animate-in slide-in-from-bottom sm:zoom-in duration-200 overflow-y-auto custom-scrollbar">
         <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden mb-1 flex-shrink-0"></div>
@@ -624,7 +624,6 @@
             <select id="transCategory" required class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none"></select>
           </div>
 
-          <!-- Ações com margem e espaçamento garantidos -->
           <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800 mt-2">
             <button type="button" onclick="closeModal()" class="px-4 py-2.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white">Cancelar</button>
             <button type="submit" class="px-6 py-2.5 text-xs font-bold bg-brand-600 active:scale-95 text-white rounded-xl shadow-md shadow-brand-600/20">Salvar</button>
@@ -712,7 +711,7 @@
       </div>
     </div>
 
-    <!-- MODAL: PERFIL DO UTILIZADOR (COM MARGEM SEGURA) -->
+    <!-- MODAL: PERFIL DO UTILIZADOR -->
     <div id="modalUser" class="fixed inset-0 z-50 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
       <div class="app-modal-sheet bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-sm w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 text-center overflow-y-auto custom-scrollbar">
         <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden mb-1 flex-shrink-0"></div>
@@ -827,6 +826,21 @@
       document.getElementById('monthSelector').value = currentPeriod;
     }
 
+    // Sincroniza a identidade do lojista logado com o daemon nativo do Android
+    function syncNativeSession(user) {
+      if (!user) return;
+      try {
+        if (window.AndroidNative && typeof window.AndroidNative.saveSessionData === 'function') {
+          const userName = user.user_metadata?.full_name || 
+                           user.user_metadata?.name || 
+                           user.email.split('@')[0];
+          window.AndroidNative.saveSessionData(user.id, userName);
+        }
+      } catch (err) {
+        console.warn('Ponte nativa AndroidNative indisponível:', err);
+      }
+    }
+
     async function checkAuthGate() {
       if (!window.supabaseClient) {
         showAuthScreen();
@@ -837,6 +851,7 @@
         const { data: { session } } = await window.supabaseClient.auth.getSession();
         if (session && session.user) {
           currentUser = session.user;
+          syncNativeSession(currentUser);
           updateAuthHeader();
           showAppScreen();
           await fetchCloudData();
@@ -849,6 +864,7 @@
           currentUser = session ? session.user : null;
           updateAuthHeader();
           if (currentUser) {
+            syncNativeSession(currentUser);
             showAppScreen();
             await fetchCloudData();
             subscribeRealtime();
@@ -909,6 +925,7 @@
           if (error) throw error;
           if (data && data.user) {
             currentUser = data.user;
+            syncNativeSession(currentUser);
             updateAuthHeader();
             showAppScreen();
             await fetchCloudData();
@@ -932,20 +949,38 @@
       if (!window.supabaseClient || !currentUser) return;
       try {
         let txData = null;
-        const resCreatedAt = await window.supabaseClient.from('transactions').select('*').order('created_at', { ascending: false });
+        // Busca movimentações filtradas pelo user_id do titular autenticado
+        const resCreatedAt = await window.supabaseClient
+          .from('transactions')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .order('created_at', { ascending: false });
+
         if (!resCreatedAt.error) {
           txData = resCreatedAt.data;
         } else {
-          const resDate = await window.supabaseClient.from('transactions').select('*').order('date', { ascending: false });
+          const resDate = await window.supabaseClient
+            .from('transactions')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .order('date', { ascending: false });
           txData = resDate.data || [];
         }
 
         let recData = null;
-        const resRecCreated = await window.supabaseClient.from('recurring_rules').select('*').order('created_at', { ascending: true });
+        const resRecCreated = await window.supabaseClient
+          .from('recurring_rules')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .order('created_at', { ascending: true });
+
         if (!resRecCreated.error) {
           recData = resRecCreated.data;
         } else {
-          const resRecGeneric = await window.supabaseClient.from('recurring_rules').select('*');
+          const resRecGeneric = await window.supabaseClient
+            .from('recurring_rules')
+            .select('*')
+            .eq('user_id', currentUser.id);
           recData = resRecGeneric.data || [];
         }
 
@@ -962,8 +997,8 @@
 
       realtimeChannel = window.supabaseClient
         .channel('realtime_finflow')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => fetchCloudData())
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'recurring_rules' }, () => fetchCloudData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${currentUser.id}` }, () => fetchCloudData())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'recurring_rules', filter: `user_id=eq.${currentUser.id}` }, () => fetchCloudData())
         .subscribe();
     }
 
