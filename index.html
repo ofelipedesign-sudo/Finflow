@@ -13,8 +13,15 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Supabase JS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- PDF.js CDN (Leitor de faturas em PDF no navegador) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
   <script>
+    // Configura o worker do PDF.js
+    if (window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -316,7 +323,7 @@
                 <option value="recorrente">Recorrentes</option>
               </select>
 
-              <select id="typeFilter" onchange="renderApp()" class="text-xs rounded-lg border border-slate-200 dark:border-slate-700 py-2 px-2.5 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+              <select id="typeFilter" onchange="renderApp()" class="text-xs rounded-xl border border-slate-200 dark:border-slate-700 py-2 px-2.5 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
                 <option value="all">Tipos</option>
                 <option value="income">Receitas</option>
                 <option value="expense">Despesas</option>
@@ -350,15 +357,29 @@
         </div>
       </div>
 
-      <!-- ABA 2: LANÇAMENTOS AVULSOS -->
+      <!-- ABA 2: LANÇAMENTOS AVULSOS (COM LEITOR DE FATURA EM PDF) -->
       <div id="viewAvulsos" class="flex flex-col gap-4 sm:gap-6 hidden">
-        <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div>
             <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Lançamentos Avulsos & Extras</h3>
-            <p class="text-xs text-slate-400">Atalhos rápidos para receitas e despesas pontuais.</p>
+            <p class="text-xs text-slate-400">Atalhos rápidos e importador de faturas de cartão.</p>
+          </div>
+
+          <!-- BOTÃO IMPORTAR FATURA PDF -->
+          <div class="flex items-center gap-2">
+            <input type="file" id="inputPdfInvoice" accept=".pdf,.ofx,.csv" onchange="handleInvoiceFileUpload(event)" class="hidden">
+            <button onclick="document.getElementById('inputPdfInvoice').click()" class="flex-1 sm:flex-none px-4 py-2.5 text-xs font-bold rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900 transition flex items-center justify-center gap-1.5 shadow-sm">
+              <i class="ph-bold ph-file-pdf text-base"></i>
+              <span>Importar Fatura PDF</span>
+            </button>
+            <button onclick="openModal('avulso')" class="px-4 py-2.5 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition flex items-center justify-center gap-1">
+              <i class="ph-bold ph-plus text-base"></i>
+              <span>Novo Avulso</span>
+            </button>
           </div>
         </div>
 
+        <!-- Atalhos Rápidos -->
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
           <button onclick="quickAddAvulso('Venda Avulsa', 'Vendas', 'income')" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 active:bg-slate-50 dark:active:bg-slate-800 rounded-2xl text-left transition shadow-sm">
             <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2">
@@ -404,7 +425,7 @@
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
           <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-3">
             <h4 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">Avulsos no Período</h4>
-            <span id="labelTotalAvulsosPeriod" class="text-xs font-bold text-indigo-600 dark:text-indigo-400">R$ 0,00</span>
+            <span id="labelTotalAvulsosPeriod" class="text-xs font-bold text-indigo-600 dark:text-indigo-400">Total: R$ 0,00</span>
           </div>
           <div id="containerAvulsosList" class="divide-y divide-slate-100 dark:divide-slate-800/70"></div>
           <div id="emptyStateAvulsos" class="p-6 text-center text-slate-400 text-xs hidden">Nenhum avulso registado.</div>
@@ -460,6 +481,57 @@
         <span class="text-[10px] font-medium">Perfil</span>
       </button>
     </nav>
+
+    <!-- MODAL: CONFIRMAÇÃO DE FATURA IMPORTADA -->
+    <div id="modalInvoiceConfirm" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+      <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 animate-in slide-in-from-bottom sm:zoom-in duration-200">
+        <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden"></div>
+        
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+          <div class="flex items-center gap-2">
+            <i class="ph-bold ph-file-pdf text-rose-500 text-xl"></i>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Fatura Identificada</h3>
+          </div>
+          <button onclick="closeInvoiceModal()" class="p-1 text-slate-400"><i class="ph-bold ph-x text-lg"></i></button>
+        </div>
+
+        <form id="formInvoiceConfirm" onsubmit="confirmInvoiceTransaction(event)" class="flex flex-col gap-3.5">
+          <div class="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-xl">
+            <span class="text-[11px] font-bold text-rose-600 dark:text-rose-400 block uppercase">Valor Total Extraído</span>
+            <div class="flex items-baseline gap-1 mt-1">
+              <span class="text-xs text-rose-600 dark:text-rose-400 font-bold">R$</span>
+              <input type="number" step="0.01" min="0.01" id="invAmount" required class="text-2xl font-black bg-transparent text-rose-600 dark:text-rose-400 w-full focus:outline-none">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
+            <input type="text" id="invDesc" required value="Fatura Cartão de Crédito" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Data de Vencimento</label>
+            <input type="date" id="invDate" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Categoria</label>
+            <select id="invCategory" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+              <option value="Cartão de Crédito">Cartão de Crédito</option>
+              <option value="Moradia / Aluguel">Moradia / Aluguel</option>
+              <option value="Supermercado">Supermercado</option>
+              <option value="Gasto Imprevisto / Esporádico">Gasto Imprevisto / Esporádico</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 mt-2">
+            <button type="button" onclick="closeInvoiceModal()" class="px-4 py-2.5 text-xs font-semibold text-slate-500">Cancelar</button>
+            <button type="submit" class="px-5 py-2.5 text-xs font-bold bg-brand-600 active:scale-95 text-white rounded-xl">Lançar como Despesa Avulsa</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <!-- MODAL: NOVA / EDITAR TRANSAÇÃO -->
     <div id="modalTransaction" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
@@ -658,7 +730,7 @@
   <script>
     const CATEGORIES = {
       income: ['Vendas', 'Freelance', 'Doação', 'Bonificação / Extra', 'Salário', 'Serviços / Manutenção', 'Investimentos', 'Outros'],
-      expense: ['Gasto Imprevisto / Esporádico', 'Moradia / Aluguel', 'Supermercado', 'Transporte / Combustível', 'Saúde', 'Educação', 'Lazer', 'Assinaturas', 'Outros']
+      expense: ['Cartão de Crédito', 'Gasto Imprevisto / Esporádico', 'Moradia / Aluguel', 'Supermercado', 'Transporte / Combustível', 'Saúde', 'Educação', 'Lazer', 'Assinaturas', 'Outros']
     };
 
     let transactions = [];
@@ -1089,7 +1161,7 @@
         el.innerHTML = `
           <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-8 h-8 rounded-lg ${isIncome ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-600'} flex items-center justify-center font-bold text-xs flex-shrink-0">
-              <i class="ph-bold ${isIncome ? 'ph-tag' : 'ph-warning-circle'}"></i>
+              <i class="ph-bold ${isIncome ? 'ph-tag' : 'ph-credit-card'}"></i>
             </div>
             <div class="min-w-0">
               <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">${escapeHtml(item.description)}</p>
@@ -1114,7 +1186,130 @@
       document.getElementById('transAmount').focus();
     }
 
-    // --- RENDERIZAÇÃO DE RECORRÊNCIAS COM BOTÃO DE TOGGLE (MARCAR / DESMARCAR) ---
+    // --- LEITOR E IMPORTADOR DE FATURAS PDF (SANTANDER & OUTROS) ---
+    async function handleInvoiceFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+        await parsePdfInvoice(file);
+      } else {
+        // Fallback para arquivo de texto/extrato
+        const text = await file.text();
+        extractInvoiceDataFromText(text, file.name);
+      }
+      e.target.value = '';
+    }
+
+    async function parsePdfInvoice(file) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+
+        // Lê até as 3 primeiras páginas da fatura onde geralmente fica o resumo
+        const maxPages = Math.min(pdf.numPages, 3);
+        for (let i = 1; i <= maxPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const pageText = content.items.map(item => item.str).join(' ');
+          fullText += ' ' + pageText;
+        }
+
+        extractInvoiceDataFromText(fullText, file.name);
+      } catch (err) {
+        alert('Não foi possível ler o arquivo PDF da fatura: ' + err.message);
+      }
+    }
+
+    function extractInvoiceDataFromText(rawText, filename) {
+      let detectedAmount = null;
+      let detectedDate = null;
+
+      // Normaliza espaços
+      const text = rawText.replace(/\s+/g, ' ');
+
+      // 1. Procura por padrões de Valor Total da Fatura (Santander, Itaú, Nubank, etc.)
+      const totalPatterns = [
+        /(?:total\s+desta\s+fatura|total\s+da\s+fatura|valor\s+a\s+pagar|pagamento\s+total|saldo\s+atual|total\s+a\s+pagar)\D{0,25}R?\$?\s*([\d\.]*,\d{2})/i,
+        /R\$\s*([\d\.]*,\d{2})/i
+      ];
+
+      for (const pattern of totalPatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+          const numStr = match[1].replace(/\./g, '').replace(',', '.');
+          const val = parseFloat(numStr);
+          if (!isNaN(val) && val > 0) {
+            detectedAmount = val;
+            break;
+          }
+        }
+      }
+
+      // 2. Procura por padrões de Data de Vencimento
+      const datePatterns = [
+        /(?:vencimento|vence\s+em|data\s+de\s+vencimento)\D{0,20}(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})/i,
+        /(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})/
+      ];
+
+      for (const pattern of datePatterns) {
+        const match = text.match(pattern);
+        if (match && match[1] && match[2] && match[3]) {
+          const day = match[1];
+          const month = match[2];
+          const year = match[3];
+          detectedDate = `${year}-${month}-${day}`;
+          break;
+        }
+      }
+
+      // Preenche os campos do modal de confirmação
+      document.getElementById('invAmount').value = detectedAmount ? detectedAmount.toFixed(2) : '0.00';
+      document.getElementById('invDate').value = detectedDate || new Date().toISOString().split('T')[0];
+      document.getElementById('invDesc').value = 'Fatura Cartão Santander';
+
+      // Abre o modal de confirmação
+      document.getElementById('modalInvoiceConfirm').classList.remove('hidden');
+    }
+
+    function closeInvoiceModal() {
+      document.getElementById('modalInvoiceConfirm').classList.add('hidden');
+    }
+
+    async function confirmInvoiceTransaction(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('invAmount').value);
+      const date = document.getElementById('invDate').value;
+      const description = document.getElementById('invDesc').value.trim();
+      const category = document.getElementById('invCategory').value;
+
+      if (!amount || amount <= 0) return alert('Por favor, informe um valor válido.');
+
+      const newTx = {
+        type: 'expense',
+        description,
+        amount,
+        date,
+        category,
+        recurring_id: null, // Lançamento Avulso
+        user_id: currentUser ? currentUser.id : null,
+        created_at: new Date().toISOString()
+      };
+
+      if (window.supabaseClient && currentUser) {
+        await window.supabaseClient.from('transactions').insert([newTx]);
+        await fetchCloudData();
+      } else {
+        transactions.unshift(newTx);
+        renderApp();
+      }
+
+      closeInvoiceModal();
+      alert(`Fatura de R$ ${amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} lançada com sucesso como despesa avulsa!`);
+    }
+
+    // --- RECORRÊNCIAS COM TOGGLE BIDIRECIONAL ---
     function renderRecurringList() {
       const container = document.getElementById('recurringListContainer');
       const empty = document.getElementById('emptyStateRecurring');
@@ -1139,7 +1334,7 @@
           const dayNum = dateStr.split('-')[2];
           return `
             <button onclick="toggleRecurrenceOccurrence('${rule.id}', '${dateStr}')" 
-                    title="${already ? 'Clique para desmarcar e remover do painel' : 'Clique para marcar e lançar no painel'}"
+                    title="${already ? 'Clique para desmarcar' : 'Clique para marcar'}"
                     class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition active:scale-95 ${already ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-500/20' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-brand-500'}">
               ${already ? '✓ ' : '+ '}${dayNum}
             </button>
@@ -1179,7 +1374,7 @@
               <span class="text-slate-500 dark:text-slate-400">Ocorrências:</span>
               <span class="font-bold ${allDone ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}">${fulfilledCount}/${totalExpected}</span>
             </div>
-            <div class="flex flex-wrap gap-1.5">
+            <div class="flex flex-wrap gap-1">
               ${occurrencesHtml}
             </div>
           </div>
@@ -1188,12 +1383,10 @@
       });
     }
 
-    // --- FUNÇÃO DE TOGGLE: MARCA OU DESMARCA O LANÇAMENTO DINAMICAMENTE ---
     async function toggleRecurrenceOccurrence(ruleId, dateStr) {
       const existing = transactions.find(t => t.recurring_id === ruleId && t.date === dateStr);
 
       if (existing) {
-        // Se já está lançado, desmarca e exclui da tabela transactions
         if (window.supabaseClient && currentUser) {
           await window.supabaseClient.from('transactions').delete().eq('id', existing.id);
           await fetchCloudData();
@@ -1202,7 +1395,6 @@
           renderApp();
         }
       } else {
-        // Se ainda não foi lançado, marca e insere
         const rule = recurringRules.find(r => r.id === ruleId);
         if (!rule) return;
 
