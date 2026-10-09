@@ -13,11 +13,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Supabase JS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- PDF.js CDN (Leitor de faturas em PDF no navegador) -->
+  <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
   <script>
-    // Configura o worker do PDF.js
     if (window.pdfjsLib) {
       window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
@@ -152,7 +151,7 @@
             </div>
           </label>
 
-          <!-- Sino Notificações -->
+          <!-- Notificações -->
           <div class="relative">
             <button id="btnBell" onclick="toggleNotificationsDropdown()" class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg transition" title="Notificações">
               <i class="ph-bold ph-bell text-lg"></i>
@@ -169,6 +168,7 @@
             </div>
           </div>
 
+          <!-- Perfil / Configurações de IA -->
           <button onclick="handleAuthClick()" class="p-2 sm:px-3 sm:py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 transition">
             <i id="authIcon" class="ph-bold ph-user-check text-base text-emerald-600"></i>
             <span id="labelAuthStatus" class="hidden sm:inline ml-1">Conta</span>
@@ -357,19 +357,18 @@
         </div>
       </div>
 
-      <!-- ABA 2: LANÇAMENTOS AVULSOS (COM LEITOR DE FATURA EM PDF) -->
+      <!-- ABA 2: LANÇAMENTOS AVULSOS (COM LEITOR DE FATURA) -->
       <div id="viewAvulsos" class="flex flex-col gap-4 sm:gap-6 hidden">
         <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div>
             <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Lançamentos Avulsos & Extras</h3>
-            <p class="text-xs text-slate-400">Atalhos rápidos e importador de faturas de cartão.</p>
+            <p class="text-xs text-slate-400">Importe a sua fatura PDF com leitura inteligente.</p>
           </div>
 
-          <!-- BOTÃO IMPORTAR FATURA PDF -->
           <div class="flex items-center gap-2">
             <input type="file" id="inputPdfInvoice" accept=".pdf,.ofx,.csv" onchange="handleInvoiceFileUpload(event)" class="hidden">
             <button onclick="document.getElementById('inputPdfInvoice').click()" class="flex-1 sm:flex-none px-4 py-2.5 text-xs font-bold rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900 transition flex items-center justify-center gap-1.5 shadow-sm">
-              <i class="ph-bold ph-file-pdf text-base"></i>
+              <i class="ph-bold ph-sparkle text-base text-amber-500"></i>
               <span>Importar Fatura PDF</span>
             </button>
             <button onclick="openModal('avulso')" class="px-4 py-2.5 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition flex items-center justify-center gap-1">
@@ -418,7 +417,7 @@
               <i class="ph-bold ph-warning-circle text-lg"></i>
             </div>
             <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">Imprevisto</span>
-            <span class="text-[10px] text-slate-400">Reparo / emergência</span>
+            <span class="text-[10px] text-slate-400">Reparo / urgência</span>
           </button>
         </div>
 
@@ -491,6 +490,7 @@
           <div class="flex items-center gap-2">
             <i class="ph-bold ph-file-pdf text-rose-500 text-xl"></i>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Fatura Identificada</h3>
+            <span id="badgeAiConfidence" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 font-bold hidden">IA</span>
           </div>
           <button onclick="closeInvoiceModal()" class="p-1 text-slate-400"><i class="ph-bold ph-x text-lg"></i></button>
         </div>
@@ -533,160 +533,7 @@
       </div>
     </div>
 
-    <!-- MODAL: NOVA / EDITAR TRANSAÇÃO -->
-    <div id="modalTransaction" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
-      <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 animate-in slide-in-from-bottom sm:zoom-in duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
-        <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden"></div>
-        
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
-          <h3 id="modalTransactionTitle" class="text-sm font-bold text-slate-900 dark:text-white">Nova Movimentação</h3>
-          <button onclick="closeModal()" class="p-1 text-slate-400">
-            <i class="ph-bold ph-x text-lg"></i>
-          </button>
-        </div>
-
-        <form id="formTransaction" onsubmit="saveTransaction(event)" class="flex flex-col gap-3">
-          <input type="hidden" id="transId">
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Classificação</label>
-            <div class="grid grid-cols-2 gap-2">
-              <label class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-indigo-50 dark:has-[:checked]:bg-indigo-950/60 has-[:checked]:border-indigo-500 text-xs font-semibold">
-                <input type="radio" name="transOrigin" value="avulso" class="hidden" checked onchange="updateCategorySelect()">
-                <span>Avulso</span>
-              </label>
-              <label class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-slate-100 dark:has-[:checked]:bg-slate-800 has-[:checked]:border-slate-400 text-xs font-semibold">
-                <input type="radio" name="transOrigin" value="fixo" class="hidden" onchange="updateCategorySelect()">
-                <span>Regular</span>
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Natureza</label>
-            <div class="grid grid-cols-2 gap-2">
-              <label class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-emerald-50 dark:has-[:checked]:bg-emerald-950/60 has-[:checked]:border-emerald-500 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
-                <input type="radio" name="transType" value="income" class="hidden" checked onchange="updateCategorySelect()">
-                <span>+ Receita</span>
-              </label>
-              <label class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-rose-50 dark:has-[:checked]:bg-rose-950/60 has-[:checked]:border-rose-500 text-rose-700 dark:text-rose-300 text-xs font-bold">
-                <input type="radio" name="transType" value="expense" class="hidden" onchange="updateCategorySelect()">
-                <span>- Despesa</span>
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
-            <input type="text" id="transDesc" required placeholder="Ex: Supermercado, Venda..." class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
-          </div>
-
-          <div class="grid grid-cols-2 gap-2.5">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Valor (R$)</label>
-              <input type="number" step="0.01" min="0.01" id="transAmount" required placeholder="0,00" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Data</label>
-              <input type="date" id="transDate" required class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Categoria</label>
-            <select id="transCategory" required class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none"></select>
-          </div>
-
-          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 mt-2">
-            <button type="button" onclick="closeModal()" class="px-4 py-2.5 text-xs font-semibold text-slate-500">Cancelar</button>
-            <button type="submit" class="px-5 py-2.5 text-xs font-bold bg-brand-600 active:scale-95 text-white rounded-xl">Salvar</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- MODAL: PROGRAMAR RECORRÊNCIA -->
-    <div id="modalRecurring" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
-      <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 animate-in slide-in-from-bottom sm:zoom-in duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
-        <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden"></div>
-        
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
-          <h3 id="modalRecurringTitle" class="text-sm font-bold text-slate-900 dark:text-white">Programar Recorrência</h3>
-          <button onclick="closeRecurringModal()" class="p-1 text-slate-400">
-            <i class="ph-bold ph-x text-lg"></i>
-          </button>
-        </div>
-
-        <form id="formRecurring" onsubmit="saveRecurring(event)" class="flex flex-col gap-3">
-          <input type="hidden" id="recurId">
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Tipo</label>
-            <div class="grid grid-cols-2 gap-2">
-              <label class="flex items-center justify-center py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-emerald-50 dark:has-[:checked]:bg-emerald-950/60 has-[:checked]:border-emerald-500 text-xs font-bold">
-                <input type="radio" name="recurType" value="income" class="hidden" checked onchange="updateRecurCategorySelect()">
-                <span>Receita</span>
-              </label>
-              <label class="flex items-center justify-center py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-rose-50 dark:has-[:checked]:bg-rose-950/60 has-[:checked]:border-rose-500 text-xs font-bold">
-                <input type="radio" name="recurType" value="expense" class="hidden" onchange="updateRecurCategorySelect()">
-                <span>Despesa</span>
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
-            <input type="text" id="recurDesc" required placeholder="Ex: Aluguer, Salário..." class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
-          </div>
-
-          <div class="grid grid-cols-2 gap-2.5">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Valor Unitário</label>
-              <input type="number" step="0.01" min="0.01" id="recurAmount" required placeholder="0,00" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Frequência</label>
-              <select id="recurFrequency" onchange="onFrequencyChange()" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
-                <option value="monthly">Mensal</option>
-                <option value="weekly">Semanal</option>
-                <option value="biweekly">Quinzenal</option>
-                <option value="annual">Anual</option>
-              </select>
-            </div>
-          </div>
-
-          <div id="fieldDueDay">
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Dia do Vencimento (1 a 31)</label>
-            <input type="number" id="recurDueDay" min="1" max="31" value="5" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
-          </div>
-
-          <div id="fieldWeekday" class="hidden">
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Dia da Semana</label>
-            <select id="recurWeekday" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
-              <option value="0">Domingo</option>
-              <option value="1">Segunda-feira</option>
-              <option value="2">Terça-feira</option>
-              <option value="3">Quarta-feira</option>
-              <option value="4">Quinta-feira</option>
-              <option value="5" selected>Sexta-feira</option>
-              <option value="6">Sábado</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Categoria</label>
-            <select id="recurCategory" required class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none"></select>
-          </div>
-
-          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 mt-2">
-            <button type="button" onclick="closeRecurringModal()" class="px-4 py-2.5 text-xs font-semibold text-slate-500">Cancelar</button>
-            <button type="submit" class="px-5 py-2.5 text-xs font-bold bg-brand-600 active:scale-95 text-white rounded-xl">Guardar Regra</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- MODAL: PERFIL DO UTILIZADOR -->
+    <!-- MODAL: PERFIL DO UTILIZADOR E CONFIGURAÇÃO DA IA -->
     <div id="modalUser" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
       <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-sm w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 text-center">
         <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden"></div>
@@ -697,11 +544,23 @@
           <p class="text-xs text-slate-400">Ligado com:</p>
           <p id="currentUserEmail" class="text-sm font-bold text-slate-900 dark:text-white break-all"></p>
         </div>
-        <div class="flex flex-col gap-2 mt-2">
-          <button onclick="exportCSV()" class="sm:hidden w-full py-3 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700">Exportar CSV</button>
-          <button onclick="openResetModal()" class="sm:hidden w-full py-3 text-xs font-bold rounded-xl border border-amber-200 text-amber-600">Gestor de Reset</button>
-          <button onclick="signOut()" class="w-full py-3 text-xs font-bold rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800">Terminar Sessão</button>
-          <button onclick="closeUserModal()" class="w-full py-2.5 text-xs font-semibold text-slate-400">Fechar</button>
+
+        <!-- Chave Gemini AI Gratuita -->
+        <div class="text-left border-t border-slate-100 dark:border-slate-800 pt-3">
+          <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+            <span>Chave Gemini AI (Gratuita)</span>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-brand-600 dark:text-emerald-400 underline text-[10px]">Obter Chave</a>
+          </label>
+          <input type="password" id="geminiApiKeyInput" placeholder="Cole sua chave da Gemini API aqui" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+          <p class="text-[10px] text-slate-400 mt-1">Usada para ler com precisão qualquer formato de fatura sem erros.</p>
+        </div>
+
+        <div class="flex flex-col gap-2 mt-1">
+          <button onclick="saveAiKey()" class="w-full py-2.5 text-xs font-bold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">Salvar Chave de IA</button>
+          <button onclick="exportCSV()" class="sm:hidden w-full py-2.5 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700">Exportar CSV</button>
+          <button onclick="openResetModal()" class="sm:hidden w-full py-2.5 text-xs font-bold rounded-xl border border-amber-200 text-amber-600">Gestor de Reset</button>
+          <button onclick="signOut()" class="w-full py-2.5 text-xs font-bold rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800">Terminar Sessão</button>
+          <button onclick="closeUserModal()" class="w-full py-2 text-xs font-semibold text-slate-400">Fechar</button>
         </div>
       </div>
     </div>
@@ -1186,7 +1045,7 @@
       document.getElementById('transAmount').focus();
     }
 
-    // --- LEITOR E IMPORTADOR DE FATURAS PDF (ROBUSTO COM VARREDURA COMPLETA) ---
+    // --- LEITOR E IMPORTADOR DE FATURAS (COM SUPORTE A IA GEMINI OU PARSER LOCAL ROBUSTO) ---
     async function handleInvoiceFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1195,7 +1054,7 @@
         await parsePdfInvoice(file);
       } else {
         const text = await file.text();
-        extractInvoiceDataFromText(text, file.name);
+        await processInvoiceText(text, file.name);
       }
       e.target.value = '';
     }
@@ -1206,7 +1065,6 @@
         const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let fullText = '';
 
-        // Lê TODAS as páginas do documento (garante encontrar resumos no final)
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const content = await page.getTextContent();
@@ -1214,82 +1072,122 @@
           fullText += '\n ' + pageText;
         }
 
-        extractInvoiceDataFromText(fullText, file.name);
+        await processInvoiceText(fullText, file.name);
       } catch (err) {
         alert('Não foi possível ler o arquivo PDF: ' + err.message);
       }
     }
 
-    function extractInvoiceDataFromText(rawText, filename) {
+    async function processInvoiceText(rawText, filename) {
+      const apiKey = localStorage.getItem('finflow_gemini_key');
+      
+      // Se houver chave Gemini cadastrada, interpreta semanticamente via IA
+      if (apiKey) {
+        try {
+          const aiResult = await extractWithGeminiAI(rawText, apiKey);
+          if (aiResult && aiResult.amount) {
+            document.getElementById('invAmount').value = aiResult.amount.toFixed(2);
+            document.getElementById('invDate').value = aiResult.due_date || new Date().toISOString().split('T')[0];
+            document.getElementById('invDesc').value = aiResult.description || 'Fatura Cartão de Crédito';
+            document.getElementById('badgeAiConfidence').classList.remove('hidden');
+            document.getElementById('modalInvoiceConfirm').classList.remove('hidden');
+            return;
+          }
+        } catch (aiErr) {
+          console.warn('Falha na IA, usando parser local de contingência:', aiErr);
+        }
+      }
+
+      // Fallback: Parser local de regras aprimorado
+      extractInvoiceDataLocal(rawText, filename);
+    }
+
+    async function extractWithGeminiAI(text, key) {
+      const prompt = `Analise o texto desta fatura de cartão de crédito e extraia os dados principais.
+Regras:
+1. "amount": Deve ser o valor total original/atual da fatura a pagar (número decimal, ex: 155.47). IGNORE propostas ou opções de simulação de parcelamento futuro (como parcelado fácil, financiamento, CET).
+2. "due_date": Data de vencimento no formato YYYY-MM-DD.
+3. "description": Identificação concisa do banco/cartão (ex: "Fatura Bradesco Amazon", "Fatura Santander", "Fatura Nubank").
+
+Retorne EXCLUSIVAMENTE um objeto JSON válido sem Markdown:
+{"amount": 0.00, "due_date": "YYYY-MM-DD", "description": "..."}
+
+Texto da Fatura:
+${text.slice(0, 8000)}`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.1, responseMimeType: 'application/json' }
+        })
+      });
+
+      if (!response.ok) throw new Error('Erro na API Gemini');
+      const data = await response.json();
+      const rawJson = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      return JSON.parse(rawJson);
+    }
+
+    function extractInvoiceDataLocal(rawText, filename) {
       let detectedAmount = null;
       let detectedDate = null;
       let detectedBank = 'Fatura Cartão de Crédito';
 
-      // 1. Identificar Banco / Emissor para a Descrição
-      if (/sistema de empr[eé]stimo|SET/i.test(rawText)) detectedBank = 'Fatura / Lançamentos SET';
+      if (/bradesco|bradescard|amazon/i.test(rawText)) detectedBank = 'Fatura Bradesco';
       else if (/santander/i.test(rawText)) detectedBank = 'Fatura Santander';
       else if (/mercado\s*pago/i.test(rawText)) detectedBank = 'Fatura Mercado Pago';
       else if (/nubank/i.test(rawText)) detectedBank = 'Fatura Nubank';
-      else if (/ita[uú]/i.test(rawText)) detectedBank = 'Fatura Itaú';
-      else if (/bradesco/i.test(rawText)) detectedBank = 'Fatura Bradesco';
+      else if (/sistema de empr[eé]stimo|SET/i.test(rawText)) detectedBank = 'Fatura / Lançamentos SET';
 
-      // 2. Extração do Total Consolidado com Escala de Prioridade
       const textNorm = rawText.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
 
-      // Padrões de alta prioridade (frases explícitas de total geral)
-      const explicitTotalRegexes = [
-        /TOTAL\s+DOS\s+LAN[CÇ]AMENTOS\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i,
-        /TOTAL\s+(?:DESTA\s+)?FATURA\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i,
-        /VALOR\s+A\s+PAGAR\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i,
-        /PAGAMENTO\s+TOTAL\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i,
-        /TOTAL\s+CONSOLIDADO\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i
+      // Filtro estrito: procura 'Total da fatura', 'Pagamento total', 'Total dos lançamentos' que NÃO sejam 'Parcelado fácil'
+      const patterns = [
+        /(?:total\s+da\s+fatura|pagamento\s+total|total\s+desta\s+fatura|total\s+dos\s+lan[cç]amentos)\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i,
+        /(?:valor\s+do\s+documento)\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i
       ];
 
-      for (const rx of explicitTotalRegexes) {
-        const m = textNorm.match(rx);
-        if (m && m[1]) {
-          const val = parseFloat(m[1].replace(/\./g, '').replace(',', '.'));
-          if (!isNaN(val) && val > 0) {
-            detectedAmount = val;
-            break;
+      for (const rx of patterns) {
+        const matches = [...textNorm.matchAll(new RegExp(rx.source, 'gi'))];
+        for (const m of matches) {
+          // Garante que não está pegando uma simulação de crédito parcelado
+          const contextBefore = textNorm.slice(Math.max(0, m.index - 50), m.index).toLowerCase();
+          if (!contextBefore.includes('parcelado') && !contextBefore.includes('financiad') && !contextBefore.includes('iof')) {
+            const val = parseFloat(m[1].replace(/\./g, '').replace(',', '.'));
+            if (!isNaN(val) && val > 0) {
+              detectedAmount = val;
+              break;
+            }
           }
         }
+        if (detectedAmount) break;
       }
 
-      // Se não encontrou por frase exata, varre os valores no terço final do arquivo e captura o maior
-      if (!detectedAmount) {
-        const lastPart = textNorm.slice(Math.floor(textNorm.length * 0.65));
-        const allMoneyMatches = [...lastPart.matchAll(/R\$\s*([\d\.]*,\d{2})/gi)];
-        let maxVal = 0;
-        for (const match of allMoneyMatches) {
-          const v = parseFloat(match[1].replace(/\./g, '').replace(',', '.'));
-          if (v > maxVal) maxVal = v;
-        }
-        if (maxVal > 0) detectedAmount = maxVal;
+      // Vencimento
+      const dateMatch = textNorm.match(/(?:vencimento|vence\s+em|data\s+de\s+vencimento)\D{0,15}(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})/i);
+      if (dateMatch) {
+        detectedDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
       }
 
-      // 3. Extração da Data de Vencimento / Referência
-      const dateRegexes = [
-        /(?:vencimento|vence\s+em|data\s+de\s+vencimento)\D{0,15}(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})/i,
-        /(?:gerado\s+em|data)\D{0,10}(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})/i,
-        /(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})/
-      ];
-
-      for (const rx of dateRegexes) {
-        const m = textNorm.match(rx);
-        if (m && m[1] && m[2] && m[3]) {
-          detectedDate = `${m[3]}-${m[2]}-${m[1]}`;
-          break;
-        }
-      }
-
-      // Preenche os campos do modal de confirmação
       document.getElementById('invAmount').value = detectedAmount ? detectedAmount.toFixed(2) : '0.00';
       document.getElementById('invDate').value = detectedDate || new Date().toISOString().split('T')[0];
       document.getElementById('invDesc').value = detectedBank;
-
-      // Abre a tela de confirmação
+      document.getElementById('badgeAiConfidence').classList.add('hidden');
       document.getElementById('modalInvoiceConfirm').classList.remove('hidden');
+    }
+
+    function saveAiKey() {
+      const key = document.getElementById('geminiApiKeyInput').value.trim();
+      if (key) {
+        localStorage.setItem('finflow_gemini_key', key);
+        alert('Chave de IA configurada com sucesso! As faturas agora serão lidas com precisão semântica.');
+      } else {
+        localStorage.removeItem('finflow_gemini_key');
+        alert('Chave removida. O FinFlow usará o leitor local.');
+      }
+      closeUserModal();
     }
 
     function closeInvoiceModal() {
@@ -1311,7 +1209,7 @@
         amount,
         date,
         category,
-        recurring_id: null, // Despesa Avulsa
+        recurring_id: null,
         user_id: currentUser ? currentUser.id : null,
         created_at: new Date().toISOString()
       };
@@ -1658,6 +1556,8 @@
     function handleAuthClick() {
       if (currentUser) {
         document.getElementById('currentUserEmail').textContent = currentUser.email;
+        const key = localStorage.getItem('finflow_gemini_key') || '';
+        document.getElementById('geminiApiKeyInput').value = key;
         document.getElementById('modalUser').classList.remove('hidden');
       } else {
         showAuthScreen();
