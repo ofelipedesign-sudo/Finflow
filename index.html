@@ -64,7 +64,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 antialiased min-h-screen transition-colors duration-200">
 
-  <!-- CREDENCIAIS GLOBAIS FIXAS DO PROJETO SUPABASE -->
+  <!-- CREDENCIAIS GLOBAIS SUPABASE -->
   <script>
     const SUPABASE_PROJECT_URL = 'https://mrlnczxqhdhptcdojwgh.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_YsuEsBHFtQTprmSPVMlqdw_gTt_UHRj';
@@ -119,7 +119,7 @@
     </div>
   </div>
 
-  <!-- 2. SISTEMA INTERNO DO FINFLOW -->
+  <!-- 2. SISTEMA PRINCIPAL -->
   <div id="appContainer" class="hidden min-h-screen flex flex-col pb-20 sm:pb-6">
 
     <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 transition-colors duration-200">
@@ -167,7 +167,6 @@
             </div>
           </div>
 
-          <!-- Perfil / Configurações de IA -->
           <button onclick="handleAuthClick()" class="p-2 sm:px-3 sm:py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 transition">
             <i id="authIcon" class="ph-bold ph-user-check text-base text-emerald-600"></i>
             <span id="labelAuthStatus" class="hidden sm:inline ml-1">Conta</span>
@@ -183,6 +182,7 @@
             <span>CSV</span>
           </button>
 
+          <!-- Botão Topo Nova Movimentação -->
           <button onclick="openModal()" class="hidden sm:flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition shadow-sm">
             <i class="ph-bold ph-plus text-base"></i>
             <span>Nova Movimentação</span>
@@ -356,12 +356,12 @@
         </div>
       </div>
 
-      <!-- ABA 2: LANÇAMENTOS AVULSOS (COM LEITOR DE FATURA) -->
+      <!-- ABA 2: LANÇAMENTOS AVULSOS -->
       <div id="viewAvulsos" class="flex flex-col gap-4 sm:gap-6 hidden">
         <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div>
             <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Lançamentos Avulsos & Extras</h3>
-            <p class="text-xs text-slate-400">Importe a sua fatura PDF com leitura inteligente.</p>
+            <p class="text-xs text-slate-400">Importe sua fatura PDF ou crie lançamentos pontuais.</p>
           </div>
 
           <div class="flex items-center gap-2">
@@ -377,7 +377,7 @@
           </div>
         </div>
 
-        <!-- Atalhos Rápidos -->
+        <!-- Atalhos Rápidos com 1 clique -->
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
           <button onclick="quickAddAvulso('Venda Avulsa', 'Vendas', 'income')" class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 active:bg-slate-50 dark:active:bg-slate-800 rounded-2xl text-left transition shadow-sm">
             <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2">
@@ -416,7 +416,7 @@
               <i class="ph-bold ph-warning-circle text-lg"></i>
             </div>
             <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">Imprevisto</span>
-            <span class="text-[10px] text-slate-400">Reparo / urgência</span>
+            <span class="text-[10px] text-slate-400">Reparo / emergência</span>
           </button>
         </div>
 
@@ -430,7 +430,7 @@
         </div>
       </div>
 
-      <!-- ABA 3: PROGRAMADAS & RECORRÊNCIAS -->
+      <!-- ABA 3: RECORRÊNCIAS -->
       <div id="viewRecurring" class="flex flex-col gap-4 sm:gap-6 hidden">
         <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div>
@@ -532,7 +532,156 @@
       </div>
     </div>
 
-    <!-- MODAL: PERFIL DO UTILIZADOR E CONFIGURAÇÃO DA IA -->
+    <!-- MODAL: NOVA / EDITAR TRANSAÇÃO (ÚNICO E CENTRALIZADO) -->
+    <div id="modalTransaction" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+      <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 animate-in slide-in-from-bottom sm:zoom-in duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden"></div>
+        
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+          <h3 id="modalTransactionTitle" class="text-sm font-bold text-slate-900 dark:text-white">Nova Movimentação</h3>
+          <button onclick="closeModal()" class="p-1 text-slate-400"><i class="ph-bold ph-x text-lg"></i></button>
+        </div>
+
+        <form id="formTransaction" onsubmit="saveTransaction(event)" class="flex flex-col gap-3">
+          <input type="hidden" id="transId">
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Classificação</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-indigo-50 dark:has-[:checked]:bg-indigo-950/60 has-[:checked]:border-indigo-500 text-xs font-semibold">
+                <input type="radio" name="transOrigin" value="avulso" class="hidden" checked onchange="updateCategorySelect()">
+                <span>Avulso</span>
+              </label>
+              <label class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-slate-100 dark:has-[:checked]:bg-slate-800 has-[:checked]:border-slate-400 text-xs font-semibold">
+                <input type="radio" name="transOrigin" value="fixo" class="hidden" onchange="updateCategorySelect()">
+                <span>Regular</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Natureza</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-emerald-50 dark:has-[:checked]:bg-emerald-950/60 has-[:checked]:border-emerald-500 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
+                <input type="radio" name="transType" value="income" class="hidden" checked onchange="updateCategorySelect()">
+                <span>+ Receita</span>
+              </label>
+              <label class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-rose-50 dark:has-[:checked]:bg-rose-950/60 has-[:checked]:border-rose-500 text-rose-700 dark:text-rose-300 text-xs font-bold">
+                <input type="radio" name="transType" value="expense" class="hidden" onchange="updateCategorySelect()">
+                <span>- Despesa</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
+            <input type="text" id="transDesc" required placeholder="Ex: Supermercado, Venda..." class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Valor (R$)</label>
+              <input type="number" step="0.01" min="0.01" id="transAmount" required placeholder="0,00" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Data</label>
+              <input type="date" id="transDate" required class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Categoria</label>
+            <select id="transCategory" required class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none"></select>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 mt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2.5 text-xs font-semibold text-slate-500">Cancelar</button>
+            <button type="submit" class="px-5 py-2.5 text-xs font-bold bg-brand-600 active:scale-95 text-white rounded-xl">Salvar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: PROGRAMAR RECORRÊNCIA (ÚNICO E CENTRALIZADO) -->
+    <div id="modalRecurring" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+      <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 animate-in slide-in-from-bottom sm:zoom-in duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden"></div>
+        
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+          <h3 id="modalRecurringTitle" class="text-sm font-bold text-slate-900 dark:text-white">Programar Recorrência</h3>
+          <button onclick="closeRecurringModal()" class="p-1 text-slate-400"><i class="ph-bold ph-x text-lg"></i></button>
+        </div>
+
+        <form id="formRecurring" onsubmit="saveRecurring(event)" class="flex flex-col gap-3">
+          <input type="hidden" id="recurId">
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Tipo</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="flex items-center justify-center py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-emerald-50 dark:has-[:checked]:bg-emerald-950/60 has-[:checked]:border-emerald-500 text-xs font-bold">
+                <input type="radio" name="recurType" value="income" class="hidden" checked onchange="updateRecurCategorySelect()">
+                <span>Receita</span>
+              </label>
+              <label class="flex items-center justify-center py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:bg-rose-50 dark:has-[:checked]:bg-rose-950/60 has-[:checked]:border-rose-500 text-xs font-bold">
+                <input type="radio" name="recurType" value="expense" class="hidden" onchange="updateRecurCategorySelect()">
+                <span>Despesa</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
+            <input type="text" id="recurDesc" required placeholder="Ex: Aluguer, Salário..." class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Valor Unitário</label>
+              <input type="number" step="0.01" min="0.01" id="recurAmount" required placeholder="0,00" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Frequência</label>
+              <select id="recurFrequency" onchange="onFrequencyChange()" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+                <option value="monthly">Mensal</option>
+                <option value="weekly">Semanal</option>
+                <option value="biweekly">Quinzenal</option>
+                <option value="annual">Anual</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="fieldDueDay">
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Dia do Vencimento (1 a 31)</label>
+            <input type="number" id="recurDueDay" min="1" max="31" value="5" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+          </div>
+
+          <div id="fieldWeekday" class="hidden">
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Dia da Semana</label>
+            <select id="recurWeekday" class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+              <option value="0">Domingo</option>
+              <option value="1">Segunda-feira</option>
+              <option value="2">Terça-feira</option>
+              <option value="3">Quarta-feira</option>
+              <option value="4">Quinta-feira</option>
+              <option value="5" selected>Sexta-feira</option>
+              <option value="6">Sábado</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Categoria</label>
+            <select id="recurCategory" required class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white focus:outline-none"></select>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 mt-2">
+            <button type="button" onclick="closeRecurringModal()" class="px-4 py-2.5 text-xs font-semibold text-slate-500">Cancelar</button>
+            <button type="submit" class="px-5 py-2.5 text-xs font-bold bg-brand-600 active:scale-95 text-white rounded-xl">Guardar Regra</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: PERFIL DO UTILIZADOR -->
     <div id="modalUser" class="fixed inset-0 z-50 bg-slate-900/50 dark:bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
       <div class="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-sm w-full p-6 shadow-2xl border-t sm:border border-slate-100 dark:border-slate-800 flex flex-col gap-4 text-center">
         <div class="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto sm:hidden"></div>
@@ -746,7 +895,6 @@
       }
     }
 
-    // Busca com fallback de ordenação para evitar que tabelas sem created_at travem a interface
     async function fetchCloudData() {
       if (!window.supabaseClient || !currentUser) return;
       try {
@@ -972,7 +1120,6 @@
 
         const dateHourDisplay = formatFullDateTime(item.created_at || item.date);
 
-        // Desktop
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-800/50 transition border-b border-slate-100 dark:border-slate-800';
         tr.innerHTML = `
@@ -989,7 +1136,6 @@
         `;
         tBody.appendChild(tr);
 
-        // Mobile
         const card = document.createElement('div');
         card.className = 'p-3 flex items-center justify-between gap-3 active:bg-slate-50 dark:active:bg-slate-800/40 transition';
         card.innerHTML = `
@@ -1060,14 +1206,15 @@
 
     function quickAddAvulso(defaultDesc, defaultCat, type) {
       openModal('avulso');
-      document.querySelector(`input[name="transType"][value="${type}"]`).checked = true;
+      const radio = document.querySelector(`input[name="transType"][value="${type}"]`);
+      if (radio) radio.checked = true;
       updateCategorySelect();
       document.getElementById('transDesc').value = defaultDesc;
       document.getElementById('transCategory').value = defaultCat;
       document.getElementById('transAmount').focus();
     }
 
-    // --- LEITOR E IMPORTADOR DE FATURAS (COM SUPORTE A IA GEMINI OU PARSER LOCAL ROBUSTO) ---
+    // --- LEITOR E IMPORTADOR DE FATURAS ---
     async function handleInvoiceFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1473,8 +1620,12 @@ ${text.slice(0, 8000)}`;
       document.getElementById('transId').value = item.id;
       
       const originVal = item.recurring_id ? 'fixo' : 'avulso';
-      document.querySelector(`input[name="transOrigin"][value="${originVal}"]`).checked = true;
-      document.querySelector(`input[name="transType"][value="${item.type}"]`).checked = true;
+      const originRadio = document.querySelector(`input[name="transOrigin"][value="${originVal}"]`);
+      if (originRadio) originRadio.checked = true;
+
+      const typeRadio = document.querySelector(`input[name="transType"][value="${item.type}"]`);
+      if (typeRadio) typeRadio.checked = true;
+
       updateCategorySelect();
 
       document.getElementById('transDesc').value = item.description;
@@ -1526,7 +1677,9 @@ ${text.slice(0, 8000)}`;
 
       document.getElementById('modalRecurringTitle').textContent = 'Editar Regra';
       document.getElementById('recurId').value = item.id;
-      document.querySelector(`input[name="recurType"][value="${item.type}"]`).checked = true;
+      
+      const typeRadio = document.querySelector(`input[name="recurType"][value="${item.type}"]`);
+      if (typeRadio) typeRadio.checked = true;
       updateRecurCategorySelect();
 
       document.getElementById('recurDesc').value = item.description;
@@ -1666,6 +1819,8 @@ ${text.slice(0, 8000)}`;
     }
 
     function openModal(defaultOrigin = 'fixo') {
+      const modal = document.getElementById('modalTransaction');
+      if (!modal) return;
       document.getElementById('modalTransactionTitle').textContent = 'Nova Movimentação';
       document.getElementById('transId').value = '';
       document.getElementById('formTransaction').reset();
@@ -1675,21 +1830,29 @@ ${text.slice(0, 8000)}`;
 
       document.getElementById('transDate').value = new Date().toISOString().split('T')[0];
       updateCategorySelect();
-      document.getElementById('modalTransaction').classList.remove('hidden');
+      modal.classList.remove('hidden');
     }
 
-    function closeModal() { document.getElementById('modalTransaction').classList.add('hidden'); }
+    function closeModal() { 
+      const modal = document.getElementById('modalTransaction');
+      if (modal) modal.classList.add('hidden'); 
+    }
 
     function openRecurringModal() {
+      const modal = document.getElementById('modalRecurring');
+      if (!modal) return;
       document.getElementById('modalRecurringTitle').textContent = 'Programar Recorrência';
       document.getElementById('recurId').value = '';
       document.getElementById('formRecurring').reset();
       onFrequencyChange();
       updateRecurCategorySelect();
-      document.getElementById('modalRecurring').classList.remove('hidden');
+      modal.classList.remove('hidden');
     }
 
-    function closeRecurringModal() { document.getElementById('modalRecurring').classList.add('hidden'); }
+    function closeRecurringModal() { 
+      const modal = document.getElementById('modalRecurring');
+      if (modal) modal.classList.add('hidden'); 
+    }
 
     function onFrequencyChange() {
       const freq = document.getElementById('recurFrequency').value;
@@ -1721,10 +1884,12 @@ ${text.slice(0, 8000)}`;
     }
 
     function updateCategorySelect() {
-      const type = document.querySelector('input[name="transType"]:checked')?.value || 'income';
       const select = document.getElementById('transCategory');
+      if (!select) return;
+      const typeRadio = document.querySelector('input[name="transType"]:checked');
+      const type = typeRadio ? typeRadio.value : 'income';
       select.innerHTML = '';
-      CATEGORIES[type].forEach(c => {
+      (CATEGORIES[type] || []).forEach(c => {
         const opt = document.createElement('option');
         opt.value = c;
         opt.textContent = c;
@@ -1733,10 +1898,12 @@ ${text.slice(0, 8000)}`;
     }
 
     function updateRecurCategorySelect() {
-      const type = document.querySelector('input[name="recurType"]:checked')?.value || 'income';
       const select = document.getElementById('recurCategory');
+      if (!select) return;
+      const typeRadio = document.querySelector('input[name="recurType"]:checked');
+      const type = typeRadio ? typeRadio.value : 'income';
       select.innerHTML = '';
-      CATEGORIES[type].forEach(c => {
+      (CATEGORIES[type] || []).forEach(c => {
         const opt = document.createElement('option');
         opt.value = c;
         opt.textContent = c;
