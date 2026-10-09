@@ -544,7 +544,6 @@
           <p id="currentUserEmail" class="text-sm font-bold text-slate-900 dark:text-white break-all"></p>
         </div>
 
-        <!-- Chave Gemini AI Gratuita -->
         <div class="text-left border-t border-slate-100 dark:border-slate-800 pt-3">
           <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
             <span>Chave Gemini AI (Gratuita)</span>
@@ -747,18 +746,27 @@
       }
     }
 
+    // Busca com fallback de ordenação para evitar que tabelas sem created_at travem a interface
     async function fetchCloudData() {
       if (!window.supabaseClient || !currentUser) return;
       try {
-        const { data: txData } = await window.supabaseClient
-          .from('transactions')
-          .select('*')
-          .order('created_at', { ascending: false });
+        let txData = null;
+        const resCreatedAt = await window.supabaseClient.from('transactions').select('*').order('created_at', { ascending: false });
+        if (!resCreatedAt.error) {
+          txData = resCreatedAt.data;
+        } else {
+          const resDate = await window.supabaseClient.from('transactions').select('*').order('date', { ascending: false });
+          txData = resDate.data || [];
+        }
 
-        const { data: recData } = await window.supabaseClient
-          .from('recurring_rules')
-          .select('*')
-          .order('created_at', { ascending: true });
+        let recData = null;
+        const resRecCreated = await window.supabaseClient.from('recurring_rules').select('*').order('created_at', { ascending: true });
+        if (!resRecCreated.error) {
+          recData = resRecCreated.data;
+        } else {
+          const resRecGeneric = await window.supabaseClient.from('recurring_rules').select('*');
+          recData = resRecGeneric.data || [];
+        }
 
         transactions = txData || [];
         recurringRules = recData || [];
@@ -1059,7 +1067,7 @@
       document.getElementById('transAmount').focus();
     }
 
-    // --- LEITOR E IMPORTADOR DE FATURAS ---
+    // --- LEITOR E IMPORTADOR DE FATURAS (COM SUPORTE A IA GEMINI OU PARSER LOCAL ROBUSTO) ---
     async function handleInvoiceFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
