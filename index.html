@@ -122,7 +122,6 @@
   <!-- 2. SISTEMA INTERNO DO FINFLOW -->
   <div id="appContainer" class="hidden min-h-screen flex flex-col pb-20 sm:pb-6">
 
-    <!-- Header Principal -->
     <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 transition-colors duration-200">
       <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
         <div class="flex items-center space-x-2.5">
@@ -717,11 +716,23 @@
 
       const email = document.getElementById('gateAuthEmail').value.trim();
       const password = document.getElementById('gateAuthPassword').value;
+      const submitBtn = document.getElementById('btnGateAuthSubmit');
+
+      submitBtn.disabled = true;
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Aguarde...';
 
       try {
         if (gateAuthMode === 'login') {
-          const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+          const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
+          if (data && data.user) {
+            currentUser = data.user;
+            updateAuthHeader();
+            showAppScreen();
+            await fetchCloudData();
+            subscribeRealtime();
+          }
         } else {
           const { error } = await window.supabaseClient.auth.signUp({ email, password });
           if (error) throw error;
@@ -729,7 +740,10 @@
           setGateAuthMode('login');
         }
       } catch (err) {
-        alert('Erro: ' + err.message);
+        alert('Erro de autenticação: ' + (err.message || 'Verifique seus dados.'));
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
       }
     }
 
@@ -1045,7 +1059,7 @@
       document.getElementById('transAmount').focus();
     }
 
-    // --- LEITOR E IMPORTADOR DE FATURAS (COM SUPORTE A IA GEMINI OU PARSER LOCAL ROBUSTO) ---
+    // --- LEITOR E IMPORTADOR DE FATURAS ---
     async function handleInvoiceFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1081,7 +1095,6 @@
     async function processInvoiceText(rawText, filename) {
       const apiKey = localStorage.getItem('finflow_gemini_key');
       
-      // Se houver chave Gemini cadastrada, interpreta semanticamente via IA
       if (apiKey) {
         try {
           const aiResult = await extractWithGeminiAI(rawText, apiKey);
@@ -1098,7 +1111,6 @@
         }
       }
 
-      // Fallback: Parser local de regras aprimorado
       extractInvoiceDataLocal(rawText, filename);
     }
 
@@ -1143,7 +1155,6 @@ ${text.slice(0, 8000)}`;
 
       const textNorm = rawText.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
 
-      // Filtro estrito: procura 'Total da fatura', 'Pagamento total', 'Total dos lançamentos' que NÃO sejam 'Parcelado fácil'
       const patterns = [
         /(?:total\s+da\s+fatura|pagamento\s+total|total\s+desta\s+fatura|total\s+dos\s+lan[cç]amentos)\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i,
         /(?:valor\s+do\s+documento)\D{0,15}R?\$?\s*([\d\.]*,\d{2})/i
@@ -1152,7 +1163,6 @@ ${text.slice(0, 8000)}`;
       for (const rx of patterns) {
         const matches = [...textNorm.matchAll(new RegExp(rx.source, 'gi'))];
         for (const m of matches) {
-          // Garante que não está pegando uma simulação de crédito parcelado
           const contextBefore = textNorm.slice(Math.max(0, m.index - 50), m.index).toLowerCase();
           if (!contextBefore.includes('parcelado') && !contextBefore.includes('financiad') && !contextBefore.includes('iof')) {
             const val = parseFloat(m[1].replace(/\./g, '').replace(',', '.'));
@@ -1165,7 +1175,6 @@ ${text.slice(0, 8000)}`;
         if (detectedAmount) break;
       }
 
-      // Vencimento
       const dateMatch = textNorm.match(/(?:vencimento|vence\s+em|data\s+de\s+vencimento)\D{0,15}(\d{2})[\/\.-](\d{2})[\/\.-](\d{4})/i);
       if (dateMatch) {
         detectedDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
