@@ -48,7 +48,6 @@
       }
     }
 
-    /* Ajuste para o preenchimento automático no Edge e Chrome */
     input:-webkit-autofill,
     input:-webkit-autofill:hover, 
     input:-webkit-autofill:focus {
@@ -69,13 +68,9 @@
       : null;
   </script>
 
-  <!-- ========================================== -->
-  <!-- 1. TELA DE LOGIN DEDICADA (VISUALIZAÇÃO ÚNICA) -->
-  <!-- ========================================== -->
+  <!-- 1. TELA DE LOGIN DEDICADA -->
   <div id="authScreen" class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-4 py-8 bg-slate-50 dark:bg-slate-950">
     <div class="w-full max-w-sm flex flex-col gap-5">
-      
-      <!-- Cabeçalho de Boas-vindas -->
       <div class="text-center">
         <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white mx-auto shadow-lg shadow-brand-500/20 mb-3.5">
           <i class="ph-bold ph-wallet text-3xl"></i>
@@ -84,10 +79,7 @@
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Gestão Financeira Multidispositivo</p>
       </div>
 
-      <!-- Card do Formulário -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xl flex flex-col gap-4">
-        
-        <!-- Seletor Entrar / Criar Conta -->
         <div class="flex border border-slate-200 dark:border-slate-700/80 rounded-xl p-1 bg-slate-100 dark:bg-slate-800/80 text-xs font-semibold">
           <button type="button" id="gateTabLogin" onclick="setGateAuthMode('login')" class="flex-1 py-2.5 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition">Entrar</button>
           <button type="button" id="gateTabRegister" onclick="setGateAuthMode('register')" class="flex-1 py-2.5 rounded-lg text-slate-500 dark:text-slate-400 transition">Criar Conta</button>
@@ -108,10 +100,8 @@
             Entrar no FinFlow
           </button>
         </form>
-
       </div>
 
-      <!-- Rodapé da Tela de Login -->
       <div class="flex items-center justify-center gap-2 text-xs text-slate-400">
         <span>Sincronização em tempo real</span>
         <span>•</span>
@@ -120,13 +110,10 @@
           <span>Alternar tema</span>
         </button>
       </div>
-
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- 2. SISTEMA INTERNO DO FINFLOW (APÓS LOGIN) -->
-  <!-- ========================================== -->
+  <!-- 2. SISTEMA INTERNO DO FINFLOW -->
   <div id="appContainer" class="hidden min-h-screen flex flex-col pb-20 sm:pb-6">
 
     <!-- Header Principal -->
@@ -146,7 +133,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <!-- Alternador Dark / Light -->
+          <!-- Toggle Tema -->
           <label for="themeToggleCheckbox" class="relative inline-flex items-center cursor-pointer select-none" title="Tema">
             <input type="checkbox" id="themeToggleCheckbox" onchange="toggleTheme()" class="sr-only peer">
             <div class="w-12 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-800 peer-checked:bg-slate-700 transition-colors border border-slate-300 dark:border-slate-700 flex items-center justify-between px-1">
@@ -158,7 +145,7 @@
             </div>
           </label>
 
-          <!-- Sino de Notificações -->
+          <!-- Sino Notificações -->
           <div class="relative">
             <button id="btnBell" onclick="toggleNotificationsDropdown()" class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg transition" title="Notificações">
               <i class="ph-bold ph-bell text-lg"></i>
@@ -233,7 +220,6 @@
 
       <!-- ABA 1: PAINEL & TRANSAÇÕES -->
       <div id="viewDashboard" class="flex flex-col gap-4 sm:gap-6">
-
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
           <div class="col-span-2 sm:col-span-1 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
@@ -330,7 +316,7 @@
                 <option value="recorrente">Recorrentes</option>
               </select>
 
-              <select id="typeFilter" onchange="renderApp()" class="text-xs rounded-xl border border-slate-200 dark:border-slate-700 py-2 px-2.5 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
+              <select id="typeFilter" onchange="renderApp()" class="text-xs rounded-lg border border-slate-200 dark:border-slate-700 py-2 px-2.5 bg-white dark:bg-slate-800 dark:text-white focus:outline-none">
                 <option value="all">Tipos</option>
                 <option value="income">Receitas</option>
                 <option value="expense">Despesas</option>
@@ -362,7 +348,6 @@
             <p class="text-xs font-semibold">Nenhuma movimentação registada.</p>
           </div>
         </div>
-
       </div>
 
       <!-- ABA 2: LANÇAMENTOS AVULSOS -->
@@ -431,7 +416,7 @@
         <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div>
             <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Compromissos Recorrentes</h3>
-            <p class="text-xs text-slate-400">Lançamentos automáticos no dia marcado.</p>
+            <p class="text-xs text-slate-400">Clique nas ocorrências para marcar ou desmarcar do extrato.</p>
           </div>
           <div class="flex gap-2">
             <button onclick="fulfillAllPendingCurrentMonth()" class="flex-1 sm:flex-none px-3.5 py-2.5 text-xs font-semibold rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
@@ -451,7 +436,7 @@
 
     </main>
 
-    <!-- BARRA DE NAVEGAÇÃO INFERIOR MÓVEL (BOTTOM NAVIGATION ERGONÓMICA) -->
+    <!-- BARRA DE NAVEGAÇÃO INFERIOR MÓVEL -->
     <nav class="sm:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 z-40 px-3 py-2 flex items-center justify-around">
       <button onclick="switchTab('dashboard')" id="mTabDash" class="flex flex-col items-center gap-1 text-brand-600 dark:text-emerald-400">
         <i class="ph-bold ph-chart-pie-slice text-xl"></i>
@@ -669,9 +654,7 @@
 
   </div>
 
-  <!-- ========================================== -->
-  <!-- 3. JAVASCRIPT GLOBAL E INTEGRAÇÃO          -->
-  <!-- ========================================== -->
+  <!-- 3. JAVASCRIPT GLOBAL -->
   <script>
     const CATEGORIES = {
       income: ['Vendas', 'Freelance', 'Doação', 'Bonificação / Extra', 'Salário', 'Serviços / Manutenção', 'Investimentos', 'Outros'],
@@ -770,7 +753,6 @@
       }
     }
 
-    // Alternador visual exclusivo entre ecrã de login e aplicativo
     function showAuthScreen() {
       document.getElementById('authScreen').classList.remove('hidden');
       document.getElementById('appContainer').classList.add('hidden');
@@ -1132,6 +1114,7 @@
       document.getElementById('transAmount').focus();
     }
 
+    // --- RENDERIZAÇÃO DE RECORRÊNCIAS COM BOTÃO DE TOGGLE (MARCAR / DESMARCAR) ---
     function renderRecurringList() {
       const container = document.getElementById('recurringListContainer');
       const empty = document.getElementById('emptyStateRecurring');
@@ -1155,9 +1138,10 @@
           if (already) fulfilledCount++;
           const dayNum = dateStr.split('-')[2];
           return `
-            <button onclick="${already ? '' : `fulfillSingleOccurrence('${rule.id}', '${dateStr}')`}" 
-                    class="px-2 py-1.5 rounded-lg text-[10px] font-bold border transition ${already ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'}">
-              ${already ? '✓' : '+'} ${dayNum}
+            <button onclick="toggleRecurrenceOccurrence('${rule.id}', '${dateStr}')" 
+                    title="${already ? 'Clique para desmarcar e remover do painel' : 'Clique para marcar e lançar no painel'}"
+                    class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition active:scale-95 ${already ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-500/20' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-brand-500'}">
+              ${already ? '✓ ' : '+ '}${dayNum}
             </button>
           `;
         }).join('');
@@ -1174,8 +1158,8 @@
                 ${isIncome ? 'Receita' : 'Despesa'} • ${translateFreq(rule.frequency)}
               </span>
               <div class="flex items-center gap-1">
-                <button onclick="editRecurring('${rule.id}')" class="p-1 text-slate-400"><i class="ph-bold ph-pencil-simple"></i></button>
-                <button onclick="deleteRecurring('${rule.id}')" class="p-1 text-slate-400"><i class="ph-bold ph-trash"></i></button>
+                <button onclick="editRecurring('${rule.id}')" class="p-1 text-slate-400 hover:text-brand-600"><i class="ph-bold ph-pencil-simple"></i></button>
+                <button onclick="deleteRecurring('${rule.id}')" class="p-1 text-slate-400 hover:text-rose-600"><i class="ph-bold ph-trash"></i></button>
               </div>
             </div>
 
@@ -1192,16 +1176,55 @@
 
           <div>
             <div class="flex items-center justify-between text-[11px] mb-1.5">
-              <span class="text-slate-500">Ocorrências:</span>
-              <span class="font-bold ${allDone ? 'text-emerald-600' : 'text-amber-600'}">${fulfilledCount}/${totalExpected}</span>
+              <span class="text-slate-500 dark:text-slate-400">Ocorrências:</span>
+              <span class="font-bold ${allDone ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}">${fulfilledCount}/${totalExpected}</span>
             </div>
-            <div class="flex flex-wrap gap-1">
+            <div class="flex flex-wrap gap-1.5">
               ${occurrencesHtml}
             </div>
           </div>
         `;
         container.appendChild(card);
       });
+    }
+
+    // --- FUNÇÃO DE TOGGLE: MARCA OU DESMARCA O LANÇAMENTO DINAMICAMENTE ---
+    async function toggleRecurrenceOccurrence(ruleId, dateStr) {
+      const existing = transactions.find(t => t.recurring_id === ruleId && t.date === dateStr);
+
+      if (existing) {
+        // Se já está lançado, desmarca e exclui da tabela transactions
+        if (window.supabaseClient && currentUser) {
+          await window.supabaseClient.from('transactions').delete().eq('id', existing.id);
+          await fetchCloudData();
+        } else {
+          transactions = transactions.filter(t => t.id !== existing.id);
+          renderApp();
+        }
+      } else {
+        // Se ainda não foi lançado, marca e insere
+        const rule = recurringRules.find(r => r.id === ruleId);
+        if (!rule) return;
+
+        const newTx = {
+          description: rule.description,
+          amount: rule.amount,
+          type: rule.type,
+          category: rule.category,
+          date: dateStr,
+          recurring_id: rule.id,
+          user_id: currentUser ? currentUser.id : null,
+          created_at: new Date().toISOString()
+        };
+
+        if (window.supabaseClient && currentUser) {
+          await window.supabaseClient.from('transactions').insert([newTx]);
+          await fetchCloudData();
+        } else {
+          transactions.unshift(newTx);
+          renderApp();
+        }
+      }
     }
 
     function renderCharts() {
@@ -1389,25 +1412,6 @@
 
       onFrequencyChange();
       document.getElementById('modalRecurring').classList.remove('hidden');
-    }
-
-    async function fulfillSingleOccurrence(ruleId, dateStr) {
-      const rule = recurringRules.find(r => r.id === ruleId);
-      if (!rule) return;
-
-      const newTx = {
-        description: rule.description,
-        amount: rule.amount,
-        type: rule.type,
-        category: rule.category,
-        date: dateStr,
-        recurring_id: rule.id,
-        user_id: currentUser.id,
-        created_at: new Date().toISOString()
-      };
-
-      await window.supabaseClient.from('transactions').insert([newTx]);
-      await fetchCloudData();
     }
 
     async function fulfillAllPendingCurrentMonth() {
