@@ -43,9 +43,9 @@
   <!-- CREDENCIAIS GLOBAIS FIXAS DO PROJETO SUPABASE -->
   <script>
     const SUPABASE_PROJECT_URL = 'https://mrlnczxqhdhptcdojwgh.supabase.co';
-    const SUPABASE_ANON_KEY = 'COLE_AQUI_SUA_CHAVE_ANON_PUBLIC'; // <-- COLE SUA CHAVE ANON AQUI
+    const SUPABASE_ANON_KEY = 'sb_publishable_YsuEsBHFtQTprmSPVMlqdw_gTt_UHRj'; // <-- COLE SUA CHAVE ANON AQUI
 
-    window.supabaseClient = (window.supabase && SUPABASE_ANON_KEY !== 'sb_publishable_YsuEsBHFtQTprmSPVMlqdw_gTt_UHRj') 
+    window.supabaseClient = (window.supabase && SUPABASE_ANON_KEY !== 'COLE_AQUI_SUA_CHAVE_ANON_PUBLIC') 
       ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY) 
       : null;
   </script>
