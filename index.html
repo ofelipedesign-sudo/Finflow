@@ -2037,15 +2037,4 @@ ${text.slice(0, 8000)}`;
     }
   </script>
 </body>
-
 </html>
-// Exemplo de função para enviar a configuração ao celular
-function atualizarMonitoramentoPix() {
-  const monitoramentoAtivo = document.getElementById('toggleMonitoramento').checked;
-  const bancosSelecionados = ['nubank', 'inter']; // Exemplo de captura de um select
-  
-  if (window.AndroidNative && typeof window.AndroidNative.updatePixSettings === 'function') {
-    window.AndroidNative.updatePixSettings(monitoramentoAtivo, JSON.stringify(bancosSelecionados));
-    alert('Preferências de monitoramento atualizadas.');
-  }
-}
